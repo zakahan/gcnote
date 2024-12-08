@@ -1,0 +1,25 @@
+name: gcnote
+port: 8086
+mode: debug
+mysql:
+  host: 127.0.0.1
+  port: 3306
+  db: gcnote
+  user: root
+  password: mysql-zxcvbnm
+redis:
+  host: 127.0.0.1:6379
+  dB: 0
+  password: redis-zxcvbnm
+logs:
+  path: '../data/logs'
+  level:  debug   # debug info warn error
+  max_size: 18000 # MB
+  max_age: 7      # 保留天数
+  max_backups: 2  # 最大备份数
+  compress: true  # 是否压缩
+#elasticsearch:
+#  host: 127.0.0.1
+#  port: 9200
+#  user: elastic
+#  password: SzbVt-aNdr8R6AAlCenm
