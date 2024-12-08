@@ -12,5 +12,6 @@ type User struct {
 	gorm.Model
 	UserId   string
 	UserName string
+	Email    string
 	Password string
 }

@@ -9,7 +9,7 @@
 | **UserId** | **String** | **用户ID，唯一标识用户** |
 | UserName   | String     | 用户名（不可重复）       |
 | Password   | String     | 密码              |
-
+| Email      | String     | 邮箱，注册的时候用       |
 
 
 ### 用户-知识库关联表
