@@ -28,7 +28,8 @@ import (
 )
 
 func InitConfig() {
-	configFileName := "./etc/config.yaml"
+	//configFileName := "./server/etc/config.yaml"
+	configFileName := config.PathCfg.EtcConfigPath
 	v := viper.New()
 	v.SetConfigFile(configFileName)
 	if err := v.ReadInConfig(); err != nil {

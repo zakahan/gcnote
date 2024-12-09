@@ -7,12 +7,13 @@ mysql:
   db: gcnote
   user: root
   password: mysql-zxcvbnm
+  # password: password
 redis:
   host: 127.0.0.1:6379
   dB: 0
   password: redis-zxcvbnm
 logs:
-  path: '../data/logs'
+  path: './data/logs'
   level:  debug   # debug info warn error
   max_size: 18000 # MB
   max_age: 7      # 保留天数

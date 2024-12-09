@@ -18,6 +18,20 @@ import (
 	"net/http"
 )
 
+// Register
+// @Summary      用户注册接口
+// @Description  用户通过用户名和Email进行注册。注册成功后返回Success标记
+// @ID           user-register
+// @Tags         user
+// @Accept       json
+// @Produce      json
+// @Param        request  body    dto.RegisterRequest  true  "注册请求体"
+// @Success      200      {object} wrench.BaseResponse "成功响应(code:0)"
+// @Failure      400      {object} wrench.BaseResponse "参数错误 (code: 40000)"
+// @Failure      409      {object} wrench.BaseResponse "用户已存在 (code: 40100)"
+// @Failure      409      {object} wrench.BaseResponse "电子邮箱已存在 (code: 40103)"
+// @Failure      500      {object} wrench.BaseResponse "内部服务器错误 (code: 50000)"
+// @Router       /user/register [post]
 func Register(context *gin.Context) {
 	// 参数校验
 	var req dto.RegisterRequest
@@ -73,37 +87,4 @@ func Register(context *gin.Context) {
 		return
 	}
 	context.JSON(http.StatusOK, wrench.Success())
-}
-
-func Login(context *gin.Context) {
-	// 参数校验
-	var req dto.LoginRequest
-	err := context.ShouldBindJSON(&req)
-	if err != nil {
-		context.JSON(http.StatusOK, wrench.Fail(wrench.ParamsErrCode))
-		return
-	}
-	// 逻辑处理，查询是否在数据库，如果在就登录成功，否则失败
-	userSearch := model.User{
-		UserName: req.UserName,
-	}
-	tx := config.DB.Where("user_name =?", userSearch.UserName).First(&userSearch)
-	if tx.Error != nil && !errors.Is(tx.Error, gorm.ErrRecordNotFound) {
-		zap.S().Errorf("Login query user:%+v err:%v", userSearch, tx.Error)
-		context.JSON(http.StatusOK, wrench.Fail(wrench.InternalErrCode))
-		return
-	}
-	// 然后是查看用户是否存在
-	if userSearch.ID == 0 {
-		context.JSON(http.StatusOK, wrench.Fail(wrench.RecordNotFoundErrCode))
-		return
-	}
-
-	// 密码校验
-	if wrench.CheckPassword(userSearch.Password, req.Password) != nil {
-		context.JSON(http.StatusOK, wrench.Fail(wrench.UserPasswordErrCode))
-		return
-	}
-	// 这代表成功了，然后提示登录成功
-	// .... 没写完
 }
