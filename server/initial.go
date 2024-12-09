@@ -63,9 +63,9 @@ func InitMysql() {
 	) // end of gorm.open
 	// 创建表
 	config.DB = db
-	config.DB.AutoMigrate(&model.User{})
-	config.DB.AutoMigrate(&model.Index{})
-	config.DB.AutoMigrate(&model.KBFile{})
+	err = config.DB.AutoMigrate(&model.User{})
+	err = config.DB.AutoMigrate(&model.Index{})
+	err = config.DB.AutoMigrate(&model.KBFile{})
 	if err != nil {
 		zap.S().Panicf("初始化数据库失败 err:%v", err)
 		fmt.Println("数据库初始化失败")
