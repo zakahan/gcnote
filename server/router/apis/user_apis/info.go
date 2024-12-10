@@ -24,6 +24,10 @@ import (
 // @Tags         user
 // @Accept       json
 // @Produce      json
+// @Success		 200	{object} dto.BaseResponse "成功响应，data返回用户信息"
+// @Failure		 400	{object} dto.BaseResponse "参数错误(code:40000)"
+// @Faailure     500	{object} dto.BaseResposne "服务器内部错误(code:50000)"
+// @Router		 /user/info [get]
 func Info(ctx *gin.Context) {
 	claim, exists := ctx.Get("claims")
 	if !exists {

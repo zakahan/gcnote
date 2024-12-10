@@ -53,7 +53,7 @@ go get -u github.com/alecthomas/template
 ```shell
 swag init
 ```
-
+会自动在根目录初始化一个docs文件
 
 
 
