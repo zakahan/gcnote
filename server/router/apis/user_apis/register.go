@@ -1,10 +1,10 @@
 // -------------------------------------------------
-// Package apis
+// Package user_apis
 // Author: hanzhi
-// Date: 2024/12/8
+// Date: 2024/12/9
 // -------------------------------------------------
 
-package apis
+package user_apis
 
 import (
 	"errors"
@@ -26,18 +26,18 @@ import (
 // @Accept       json
 // @Produce      json
 // @Param        request  body    dto.RegisterRequest  true  "注册请求体"
-// @Success      200      {object} wrench.BaseResponse "成功响应(code:0)"
-// @Failure      400      {object} wrench.BaseResponse "参数错误 (code: 40000)"
-// @Failure      409      {object} wrench.BaseResponse "用户已存在 (code: 40100)"
-// @Failure      409      {object} wrench.BaseResponse "电子邮箱已存在 (code: 40103)"
-// @Failure      500      {object} wrench.BaseResponse "内部服务器错误 (code: 50000)"
+// @Success      200      {object} dto.BaseResponse "成功响应(code:0)"
+// @Failure      400      {object} dto.BaseResponse "参数错误 (code: 40000)"
+// @Failure      409      {object} dto.BaseResponse "用户已存在 (code: 40100)"
+// @Failure      409      {object} dto.BaseResponse "电子邮箱已存在 (code: 40103)"
+// @Failure      500      {object} dto.BaseResponse "内部服务器错误 (code: 50000)"
 // @Router       /user/register [post]
 func Register(context *gin.Context) {
 	// 参数校验
 	var req dto.RegisterRequest
 	err := context.ShouldBindJSON(&req) // 检查
 	if err != nil {
-		context.JSON(http.StatusOK, wrench.Fail(wrench.ParamsErrCode))
+		context.JSON(http.StatusOK, dto.Fail(dto.ParamsErrCode))
 		return
 	}
 	// 逻辑处理
@@ -55,13 +55,13 @@ func Register(context *gin.Context) {
 	if tx.Error != nil && !errors.Is(tx.Error, gorm.ErrRecordNotFound) {
 
 		zap.S().Errorf("Register query user: %v err: %v", userNew.UserName, tx.Error)
-		context.JSON(http.StatusOK, wrench.Fail(wrench.InternalErrCode))
+		context.JSON(http.StatusOK, dto.Fail(dto.InternalErrCode))
 		return
 	}
 	// tx.RowsAffected
 	if tx.RowsAffected != 0 { // 行数不为0
 		// 如果用户已经存在
-		context.JSON(http.StatusOK, wrench.Fail(wrench.UserExistsErrCode))
+		context.JSON(http.StatusOK, dto.Fail(dto.UserExistsErrCode))
 		return
 	}
 
@@ -70,12 +70,12 @@ func Register(context *gin.Context) {
 	if tx.Error != nil && !errors.Is(tx.Error, gorm.ErrRecordNotFound) {
 
 		zap.S().Errorf("Register create user: %v err: %v", userNew, tx.Error)
-		context.JSON(http.StatusOK, wrench.Fail(wrench.InternalErrCode))
+		context.JSON(http.StatusOK, dto.Fail(dto.InternalErrCode))
 		return
 	}
 	if tx.RowsAffected != 0 { // 行数不为0
 		// 如果用户已经存在
-		context.JSON(http.StatusOK, wrench.Fail(wrench.UserEmailExistsErrCode))
+		context.JSON(http.StatusOK, dto.Fail(dto.UserEmailExistsErrCode))
 		return
 	}
 	// 成功创建
@@ -83,8 +83,8 @@ func Register(context *gin.Context) {
 	if tx.Error != nil && !errors.Is(tx.Error, gorm.ErrRecordNotFound) {
 
 		zap.S().Errorf("Register create user: %v err: %v", userNew, tx.Error)
-		context.JSON(http.StatusOK, wrench.Fail(wrench.InternalErrCode))
+		context.JSON(http.StatusOK, dto.Fail(dto.InternalErrCode))
 		return
 	}
-	context.JSON(http.StatusOK, wrench.Success())
+	context.JSON(http.StatusOK, dto.Success())
 }

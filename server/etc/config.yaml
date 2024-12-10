@@ -6,8 +6,8 @@ mysql:
   port: 3306
   db: gcnote
   user: root
-  password: mysql-zxcvbnm
-  # password: password
+  #password: mysql-zxcvbnm
+  password: password
 redis:
   host: 127.0.0.1:6379
   dB: 0

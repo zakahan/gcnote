@@ -1,7 +1,14 @@
+// -------------------------------------------------
+// Package router
+// Author: hanzhi
+// Date: 2024/12/9
+// -------------------------------------------------
+
 package router
 
 import (
-	"gcnote/server/router/apis"
+	_ "gcnote/docs"
+	"gcnote/server/router/apis/user_apis"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
@@ -14,8 +21,9 @@ func InitRouter() *gin.Engine {
 	route := gin.Default()
 	// 类似 fastapi的CORSMiddleware
 	route.Use(cors.Default()) // 中间件来启用CORS支持。这将允许来自任何源的GET，POST和OPTIONS请求，并允许特定的标头和方法
-	route.POST("/user/register", apis.Register)
-	route.POST("/user/login", apis.Login)
+	// 用户处理
+	route.POST("/user/register", user_apis.Register)
+	route.POST("/user/login", user_apis.Login)
 
 	// swagger
 	route.GET(

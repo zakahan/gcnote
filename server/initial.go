@@ -67,8 +67,7 @@ func InitMysql() {
 	err = config.DB.AutoMigrate(&model.Index{})
 	err = config.DB.AutoMigrate(&model.KBFile{})
 	if err != nil {
-		zap.S().Panicf("初始化数据库失败 err:%v", err)
-		fmt.Println("数据库初始化失败")
+		zap.S().Panicf("初始化MySQL数据库失败 err:%v", err)
 	}
 }
 

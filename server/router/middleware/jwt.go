@@ -1,8 +1,15 @@
+// -------------------------------------------------
+// Package middleware
+// Author: hanzhi
+// Date: 2024/12/9
+// -------------------------------------------------
+
 package middleware
 
 import (
 	"fmt"
-	"gcnote/server/router/wrench"
+	"gcnote/server/config"
+	"gcnote/server/dto"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"go.uber.org/zap"
@@ -26,7 +33,7 @@ func Jwt() gin.HandlerFunc {
 		})
 		if err != nil {
 			zap.S().Errorf("jwt Parse err:%v", err)
-			context.JSON(http.StatusOK, wrench.Fail(wrench.UserTokenErrCode))
+			context.JSON(http.StatusOK, dto.Fail(dto.UserTokenErrCode))
 			context.Abort()
 			return
 		}
@@ -35,7 +42,7 @@ func Jwt() gin.HandlerFunc {
 			context.Next()
 		default:
 			zap.S().Errorf("jwt Parse err:%+v", err)
-			context.JSON(http.StatusOK, wrench.Fail(wrench.UserTokenErrCode))
+			context.JSON(http.StatusOK, dto.Fail(dto.UserTokenErrCode))
 			context.Abort()
 			return
 		}
@@ -43,17 +50,20 @@ func Jwt() gin.HandlerFunc {
 }
 
 func NewJWT() *JWTInfo {
+	pathCfg := config.PathCfg
+	privateKeyPath := pathCfg.JwtPrivateKeyPath
+	publicKeyPath := pathCfg.JwtPublicKeyPath
 	var err error
 	var privateKey []byte
 	var publicKey []byte
 
 	// 读取私钥，注意路径问题
-	privateKey, err = os.ReadFile("./private.key")
+	privateKey, err = os.ReadFile(privateKeyPath)
 	if err != nil {
 		log.Fatalf("failed to load private key: %v", err)
 	}
 	// 读取公钥
-	publicKey, err = os.ReadFile("./public.key")
+	publicKey, err = os.ReadFile(publicKeyPath)
 	if err != nil {
 		log.Fatalf("failed to load public key: %v", err)
 	}
@@ -128,7 +138,7 @@ func VerifyJWT() gin.HandlerFunc {
 		claims, err := j.ParseToken(tokenString)
 		if err != nil {
 			zap.S().Errorf("jwt Parse err:%v", err)
-			c.JSON(http.StatusUnauthorized, wrench.Fail(wrench.UserTokenErrCode))
+			c.JSON(http.StatusUnauthorized, dto.Fail(dto.UserTokenErrCode))
 			c.Abort()
 			return
 		}

@@ -1,3 +1,9 @@
+// -------------------------------------------------
+// Package config
+// Author: hanzhi
+// Date: 2024/12/9
+// -------------------------------------------------
+
 package config
 
 import (
@@ -21,17 +27,22 @@ func getPackagePath(pkgName string) string {
 }
 
 type PathConfig struct {
-	BaseProjectPath string
-	EtcConfigPath   string
+	BaseProjectPath   string
+	EtcConfigPath     string
+	JwtPrivateKeyPath string
+	JwtPublicKeyPath  string
 }
 
 func Constructor() PathConfig {
 	baseProjectPath := getPackagePath("gcnote")
 	etcConfigPath := filepath.Join(baseProjectPath, "server/etc/config.yaml")
-
+	jwtPrivateKeyPath := filepath.Join(baseProjectPath, "server/router/middleware/private.key")
+	jwtPublicKeyPath := filepath.Join(baseProjectPath, "server/router/middleware/public.key")
 	return PathConfig{
-		BaseProjectPath: baseProjectPath,
-		EtcConfigPath:   etcConfigPath,
+		BaseProjectPath:   baseProjectPath,
+		EtcConfigPath:     etcConfigPath,
+		JwtPublicKeyPath:  jwtPublicKeyPath,
+		JwtPrivateKeyPath: jwtPrivateKeyPath,
 	}
 }
 

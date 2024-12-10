@@ -28,6 +28,12 @@ swag -v
 
 ```
 
+### 代理配置
+
+```shell
+go env -w GO111MODULE=on
+go env -w GOPROXY=https://goproxy.io,direct
+```
 
 
 其他的安装命令
