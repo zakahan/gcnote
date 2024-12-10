@@ -31,6 +31,8 @@ type PathConfig struct {
 	EtcConfigPath     string
 	JwtPrivateKeyPath string
 	JwtPublicKeyPath  string
+	KnowledgeBasePath string
+	RecycleBinPath    string
 }
 
 func Constructor() PathConfig {
@@ -38,11 +40,16 @@ func Constructor() PathConfig {
 	etcConfigPath := filepath.Join(baseProjectPath, "server/etc/config.yaml")
 	jwtPrivateKeyPath := filepath.Join(baseProjectPath, "server/router/middleware/private.key")
 	jwtPublicKeyPath := filepath.Join(baseProjectPath, "server/router/middleware/public.key")
+	knowledgeBasePath := filepath.Join(baseProjectPath, "data/local/knowledge_base")
+	recycleBinPath := filepath.Join(baseProjectPath, "data/local/recycle_bin")
+
 	return PathConfig{
 		BaseProjectPath:   baseProjectPath,
 		EtcConfigPath:     etcConfigPath,
 		JwtPublicKeyPath:  jwtPublicKeyPath,
 		JwtPrivateKeyPath: jwtPrivateKeyPath,
+		KnowledgeBasePath: knowledgeBasePath,
+		RecycleBinPath:    recycleBinPath,
 	}
 }
 

@@ -12,6 +12,7 @@
 | Email      | String     | 邮箱，注册的时候用       |
 
 
+
 ### 用户-知识库关联表
 
 | 表项        | 数据类型   | 作用                                |
@@ -30,7 +31,33 @@
 | **KBFileId** | **String** | **唯一标识文件**    |
 | KBFileName   | String     | 文件名           |
 
+知识库文档的真实路径会是/\$DocumentDir/knowledge_base/\$IndexId/\$KBFileId/KBFileName.md
 
+// 因为存在图片资源，所以必须单独建文件夹
+
+
+
+### 回收站-文件关联表
+
+| 表项         | 数据类型   | 作用                                       |
+| ------------ | ---------- | ------------------------------------------ |
+| IndexId      | String     | 原所属知识库ID，唯一标识知识库（恢复需要） |
+| **KBFileId** | **String** | **唯一标识文件**                           |
+| KBFileName   | String     | 文件名                                     |
+
+知识库文档的真实路径会是/\$DocumentDir/recycle_bin/\$IndexId/\$KBFileId/KBFileName.md
+
+
+
+### 文档级共享表
+
+| 表项           | 数据类型    | 作用                             |
+| -------------- | ----------- | -------------------------------- |
+| **ShareId**    | **String**  | **共享记录ID，唯一标识每条记录** |
+| IndexId        | String      | 知识库ID，唯一标识知识库         |
+| KBId           | String      | 文件ID，唯一标识文件             |
+| SharedToUserId | String      | 被授权用户的ID                   |
+| PermissionType | Enum/String | 权限类型（读取、编辑等）         |
 
 
 

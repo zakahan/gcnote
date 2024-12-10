@@ -28,7 +28,7 @@ import (
 // @Tags         user
 // @Accept       json
 // @Produce      json
-// @Param        request  body    dto.LoginRequest  true  "登录请求体"
+// @Param        request  body    dto.UserLoginRequest  true  "登录请求体"
 // @Success      200      {object} dto.BaseResponse "成功响应，返回JWT令牌(code:0)"
 // @Failure      400      {object} dto.BaseResponse "参数错误(code:40000)"
 // @Failure      401      {object} dto.BaseResponse "密码错误(code:40102)"
@@ -37,7 +37,7 @@ import (
 // @Router       /user/login [post]
 func Login(context *gin.Context) {
 	// 参数校验
-	var req dto.LoginRequest
+	var req dto.UserLoginRequest
 	err := context.ShouldBindJSON(&req)
 	if err != nil {
 		context.JSON(http.StatusOK, dto.Fail(dto.ParamsErrCode))

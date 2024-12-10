@@ -25,7 +25,7 @@ import (
 // @Tags         user
 // @Accept       json
 // @Produce      json
-// @Param        request  body    dto.RegisterRequest  true  "注册请求体"
+// @Param        request  body    dto.UserRegisterRequest  true  "注册请求体"
 // @Success      200      {object} dto.BaseResponse "成功响应(code:0)"
 // @Failure      400      {object} dto.BaseResponse "参数错误 (code: 40000)"
 // @Failure      409      {object} dto.BaseResponse "用户已存在 (code: 40100)"
@@ -34,7 +34,7 @@ import (
 // @Router       /user/register [post]
 func Register(context *gin.Context) {
 	// 参数校验
-	var req dto.RegisterRequest
+	var req dto.UserRegisterRequest
 	err := context.ShouldBindJSON(&req) // 检查
 	if err != nil {
 		context.JSON(http.StatusOK, dto.Fail(dto.ParamsErrCode))
