@@ -16,6 +16,10 @@ func main() {
 	server.InitMysql()
 	server.InitRedis()
 	server.InitLocalCache()
+	zap.S().Infof("-------------------------------------------------")
+	zap.S().Infof("-------------------------------------------------")
+	zap.S().Infof("New Connection")
+	zap.S().Infof("Time: %v", time.Now().String())
 	route := router.InitRouter()
 	app := &http.Server{
 		Addr:           "0.0.0.0:" + strconv.Itoa(config.ServerCfg.Port),

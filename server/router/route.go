@@ -9,6 +9,7 @@ package router
 import (
 	_ "gcnote/docs"
 	"gcnote/server/router/apis/user_apis"
+	"gcnote/server/router/middleware"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
@@ -24,6 +25,9 @@ func InitRouter() *gin.Engine {
 	// 用户处理
 	route.POST("/user/register", user_apis.Register)
 	route.POST("/user/login", user_apis.Login)
+	// 用户处理01
+	group1 := route.Group("user").Use(middleware.VerifyJWT())
+	group1.GET("/info", user_apis.Info)
 
 	// swagger
 	route.GET(

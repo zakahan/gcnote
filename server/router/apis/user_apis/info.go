@@ -25,12 +25,17 @@ import (
 // @Accept       json
 // @Produce      json
 func Info(ctx *gin.Context) {
-	//@Param        request  none    dto.LoginRequest  true  "登录请求体"
-	claim, _ := ctx.Get("claim")
+	claim, exists := ctx.Get("claims")
+	if !exists {
+		zap.S().Infof("Unable to get the claims")
+		ctx.JSON(http.StatusOK, dto.Fail(dto.UserTokenErrCode))
+		return
+	}
+	zap.S().Debugf("xxx: %v", claim)
 	currentUser := claim.(jwt.MapClaims)
 	currentUserId := currentUser["sub"].(string)
 	if currentUserId == "" {
-
+		zap.S().Debugf("currentUserId is empty")
 		ctx.JSON(http.StatusOK, dto.Fail(dto.ParamsErrCode))
 		return
 	}
@@ -42,7 +47,17 @@ func Info(ctx *gin.Context) {
 		return
 	}
 	if user != nil {
+		zap.S().Debugf("get user info by redis")
 		ctx.JSON(http.StatusOK, dto.SuccessWithData(user))
 		return
 	}
+	// 逻辑处理
+	zap.S().Debugf("refresh user info in redis.")
+	user, err = cache.RefreshUserInfo(ctx.Request.Context(), currentUserId)
+	if err != nil {
+		zap.S().Errorf("Info.refreshUserInfoCache  user:%+v err:%v", currentUserId, err)
+		ctx.JSON(http.StatusOK, dto.Fail(dto.InternalErrCode))
+	}
+
+	ctx.JSON(http.StatusOK, dto.SuccessWithData(user))
 }

@@ -72,7 +72,7 @@ func DelUserInfo(ctx context.Context, userId string) error {
 // RefreshUserInfo 刷新用户信息缓存
 func RefreshUserInfo(ctx context.Context, userId string) (*model.User, error) {
 	resp := model.User{}
-	tx := config.DB.Where("id = ?", userId).First(&resp)
+	tx := config.DB.Where("user_id = ?", userId).First(&resp)
 	if tx.Error != nil && !errors.Is(tx.Error, gorm.ErrRecordNotFound) {
 		return &resp, tx.Error
 	}

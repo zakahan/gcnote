@@ -1,1 +1,39 @@
-{"level":"INFO","ts":"2024-12-10T15:45:02.457+0800","msg":"User zhizhi login."}
+{"level":"INFO","ts":"2024-12-10T16:24:44.848+0800","msg":"-------------------------------------------------"}
+{"level":"INFO","ts":"2024-12-10T16:24:44.858+0800","msg":"-------------------------------------------------"}
+{"level":"INFO","ts":"2024-12-10T16:24:44.858+0800","msg":"New Connection"}
+{"level":"INFO","ts":"2024-12-10T16:24:44.858+0800","msg":"Time: 2024-12-10 16:24:44.8588147 +0800 CST m=+0.694560201"}
+{"level":"INFO","ts":"2024-12-10T16:24:57.345+0800","msg":"User hanzhi1 login."}
+{"level":"INFO","ts":"2024-12-10T16:25:01.932+0800","msg":"User hanzhi1 login."}
+{"level":"INFO","ts":"2024-12-10T16:25:10.224+0800","msg":"打印token： \"eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzM5MDQ5NTUsIm5hbWUiOiJoYW56aGkxIiwic3ViIjoiN2NhZjk1NjctOGQ2ZC00NGJlLTliZDMtOWZiNTlkY2EzMTE5In0.D6iYzVtanih898sj6zHBTVDU4m93UVtaNHRlPI_0jhwLwaexhW-wAZrWYfUOt2AKTpgQdaYKhVcqzXFXhunWnicEwAJOUotV8Kg4XNGKgPDJqA0_r02FyPxz32YP602xM4BbScYsRZxw4mkUoTQVAmREYTXv9yvafUuKl74mPrrQux72kLWipe49Y3XB8T6sJ-5ddK5wYQjnQ6iq8dTLAwTT1qcBvQPGtiYoaqJ7JU7bbZ912u4cINtZ8ZhblSpFfkFmw18isTeHaW3tyUGVBCS96SQkJjyjHGQOz_NL5nwPdJw7qmg-HqkR2hNfyqlTRGqA6b3JjOGr8Y6JOu5ahA\""}
+{"level":"ERROR","ts":"2024-12-10T16:25:10.224+0800","msg":"jwt Parse err:failed to verify token: token is malformed: could not base64 decode header: illegal base64 data at input byte 0"}
+{"level":"INFO","ts":"2024-12-10T16:26:11.431+0800","msg":"打印token： eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzM5MDQ5NTUsIm5hbWUiOiJoYW56aGkxIiwic3ViIjoiN2NhZjk1NjctOGQ2ZC00NGJlLTliZDMtOWZiNTlkY2EzMTE5In0.D6iYzVtanih898sj6zHBTVDU4m93UVtaNHRlPI_0jhwLwaexhW-wAZrWYfUOt2AKTpgQdaYKhVcqzXFXhunWnicEwAJOUotV8Kg4XNGKgPDJqA0_r02FyPxz32YP602xM4BbScYsRZxw4mkUoTQVAmREYTXv9yvafUuKl74mPrrQux72kLWipe49Y3XB8T6sJ-5ddK5wYQjnQ6iq8dTLAwTT1qcBvQPGtiYoaqJ7JU7bbZ912u4cINtZ8ZhblSpFfkFmw18isTeHaW3tyUGVBCS96SQkJjyjHGQOz_NL5nwPdJw7qmg-HqkR2hNfyqlTRGqA6b3JjOGr8Y6JOu5ahA"}
+{"level":"DEBUG","ts":"2024-12-10T16:26:11.431+0800","msg":"xxx: <nil>"}
+{"level":"INFO","ts":"2024-12-10T16:52:56.329+0800","msg":"-------------------------------------------------"}
+{"level":"INFO","ts":"2024-12-10T16:52:56.339+0800","msg":"-------------------------------------------------"}
+{"level":"INFO","ts":"2024-12-10T16:52:56.339+0800","msg":"New Connection"}
+{"level":"INFO","ts":"2024-12-10T16:52:56.339+0800","msg":"Time: 2024-12-10 16:52:56.3398619 +0800 CST m=+0.691278201"}
+{"level":"INFO","ts":"2024-12-10T16:53:02.929+0800","msg":"打印token： eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzM5MDQ5NTUsIm5hbWUiOiJoYW56aGkxIiwic3ViIjoiN2NhZjk1NjctOGQ2ZC00NGJlLTliZDMtOWZiNTlkY2EzMTE5In0.D6iYzVtanih898sj6zHBTVDU4m93UVtaNHRlPI_0jhwLwaexhW-wAZrWYfUOt2AKTpgQdaYKhVcqzXFXhunWnicEwAJOUotV8Kg4XNGKgPDJqA0_r02FyPxz32YP602xM4BbScYsRZxw4mkUoTQVAmREYTXv9yvafUuKl74mPrrQux72kLWipe49Y3XB8T6sJ-5ddK5wYQjnQ6iq8dTLAwTT1qcBvQPGtiYoaqJ7JU7bbZ912u4cINtZ8ZhblSpFfkFmw18isTeHaW3tyUGVBCS96SQkJjyjHGQOz_NL5nwPdJw7qmg-HqkR2hNfyqlTRGqA6b3JjOGr8Y6JOu5ahA"}
+{"level":"INFO","ts":"2024-12-10T16:53:02.930+0800","msg":"claims设置：map[exp:1.733904955e+09 name:hanzhi1 sub:7caf9567-8d6d-44be-9bd3-9fb59dca3119]"}
+{"level":"DEBUG","ts":"2024-12-10T16:53:02.930+0800","msg":"xxx: <nil>"}
+{"level":"INFO","ts":"2024-12-10T16:55:13.623+0800","msg":"-------------------------------------------------"}
+{"level":"INFO","ts":"2024-12-10T16:55:13.632+0800","msg":"-------------------------------------------------"}
+{"level":"INFO","ts":"2024-12-10T16:55:13.632+0800","msg":"New Connection"}
+{"level":"INFO","ts":"2024-12-10T16:55:13.632+0800","msg":"Time: 2024-12-10 16:55:13.6324974 +0800 CST m=+0.681359601"}
+{"level":"INFO","ts":"2024-12-10T16:55:15.997+0800","msg":"打印token： eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzM5MDQ5NTUsIm5hbWUiOiJoYW56aGkxIiwic3ViIjoiN2NhZjk1NjctOGQ2ZC00NGJlLTliZDMtOWZiNTlkY2EzMTE5In0.D6iYzVtanih898sj6zHBTVDU4m93UVtaNHRlPI_0jhwLwaexhW-wAZrWYfUOt2AKTpgQdaYKhVcqzXFXhunWnicEwAJOUotV8Kg4XNGKgPDJqA0_r02FyPxz32YP602xM4BbScYsRZxw4mkUoTQVAmREYTXv9yvafUuKl74mPrrQux72kLWipe49Y3XB8T6sJ-5ddK5wYQjnQ6iq8dTLAwTT1qcBvQPGtiYoaqJ7JU7bbZ912u4cINtZ8ZhblSpFfkFmw18isTeHaW3tyUGVBCS96SQkJjyjHGQOz_NL5nwPdJw7qmg-HqkR2hNfyqlTRGqA6b3JjOGr8Y6JOu5ahA"}
+{"level":"INFO","ts":"2024-12-10T16:55:15.998+0800","msg":"claims设置：map[exp:1.733904955e+09 name:hanzhi1 sub:7caf9567-8d6d-44be-9bd3-9fb59dca3119]"}
+{"level":"INFO","ts":"2024-12-10T16:55:15.998+0800","msg":"Unable to get the claims"}
+{"level":"DEBUG","ts":"2024-12-10T16:55:15.998+0800","msg":"xxx: <nil>"}
+{"level":"INFO","ts":"2024-12-10T16:58:17.809+0800","msg":"-------------------------------------------------"}
+{"level":"INFO","ts":"2024-12-10T16:58:17.819+0800","msg":"-------------------------------------------------"}
+{"level":"INFO","ts":"2024-12-10T16:58:17.819+0800","msg":"New Connection"}
+{"level":"INFO","ts":"2024-12-10T16:58:17.819+0800","msg":"Time: 2024-12-10 16:58:17.8190408 +0800 CST m=+0.687909001"}
+{"level":"INFO","ts":"2024-12-10T16:58:28.787+0800","msg":"打印token： eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzM5MDQ5NTUsIm5hbWUiOiJoYW56aGkxIiwic3ViIjoiN2NhZjk1NjctOGQ2ZC00NGJlLTliZDMtOWZiNTlkY2EzMTE5In0.D6iYzVtanih898sj6zHBTVDU4m93UVtaNHRlPI_0jhwLwaexhW-wAZrWYfUOt2AKTpgQdaYKhVcqzXFXhunWnicEwAJOUotV8Kg4XNGKgPDJqA0_r02FyPxz32YP602xM4BbScYsRZxw4mkUoTQVAmREYTXv9yvafUuKl74mPrrQux72kLWipe49Y3XB8T6sJ-5ddK5wYQjnQ6iq8dTLAwTT1qcBvQPGtiYoaqJ7JU7bbZ912u4cINtZ8ZhblSpFfkFmw18isTeHaW3tyUGVBCS96SQkJjyjHGQOz_NL5nwPdJw7qmg-HqkR2hNfyqlTRGqA6b3JjOGr8Y6JOu5ahA"}
+{"level":"INFO","ts":"2024-12-10T16:58:28.788+0800","msg":"claims设置：map[exp:1.733904955e+09 name:hanzhi1 sub:7caf9567-8d6d-44be-9bd3-9fb59dca3119]"}
+{"level":"DEBUG","ts":"2024-12-10T16:58:28.788+0800","msg":"xxx: map[exp:1.733904955e+09 name:hanzhi1 sub:7caf9567-8d6d-44be-9bd3-9fb59dca3119]"}
+{"level":"INFO","ts":"2024-12-10T16:58:53.175+0800","msg":"-------------------------------------------------"}
+{"level":"INFO","ts":"2024-12-10T16:58:53.184+0800","msg":"-------------------------------------------------"}
+{"level":"INFO","ts":"2024-12-10T16:58:53.184+0800","msg":"New Connection"}
+{"level":"INFO","ts":"2024-12-10T16:58:53.185+0800","msg":"Time: 2024-12-10 16:58:53.1847268 +0800 CST m=+0.668086601"}
+{"level":"INFO","ts":"2024-12-10T16:59:05.154+0800","msg":"打印token： eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzM5MDQ5NTUsIm5hbWUiOiJoYW56aGkxIiwic3ViIjoiN2NhZjk1NjctOGQ2ZC00NGJlLTliZDMtOWZiNTlkY2EzMTE5In0.D6iYzVtanih898sj6zHBTVDU4m93UVtaNHRlPI_0jhwLwaexhW-wAZrWYfUOt2AKTpgQdaYKhVcqzXFXhunWnicEwAJOUotV8Kg4XNGKgPDJqA0_r02FyPxz32YP602xM4BbScYsRZxw4mkUoTQVAmREYTXv9yvafUuKl74mPrrQux72kLWipe49Y3XB8T6sJ-5ddK5wYQjnQ6iq8dTLAwTT1qcBvQPGtiYoaqJ7JU7bbZ912u4cINtZ8ZhblSpFfkFmw18isTeHaW3tyUGVBCS96SQkJjyjHGQOz_NL5nwPdJw7qmg-HqkR2hNfyqlTRGqA6b3JjOGr8Y6JOu5ahA"}
+{"level":"INFO","ts":"2024-12-10T16:59:05.155+0800","msg":"claims设置：map[exp:1.733904955e+09 name:hanzhi1 sub:7caf9567-8d6d-44be-9bd3-9fb59dca3119]"}
+{"level":"DEBUG","ts":"2024-12-10T16:59:05.155+0800","msg":"xxx: map[exp:1.733904955e+09 name:hanzhi1 sub:7caf9567-8d6d-44be-9bd3-9fb59dca3119]"}

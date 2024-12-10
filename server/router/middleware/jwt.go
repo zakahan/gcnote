@@ -124,25 +124,29 @@ func (j *JWTInfo) ParseToken(tokenString string) (jwt.MapClaims, error) {
 
 // 验证 JWT
 func VerifyJWT() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		tokenString := c.GetHeader("token")
+	return func(ctx *gin.Context) {
+		tokenString := ctx.GetHeader("token")
+		zap.S().Infof("打印token： %v", tokenString)
 		if tokenString == "" {
-			c.JSON(http.StatusUnauthorized, map[string]string{
+			ctx.JSON(http.StatusUnauthorized, map[string]string{
 				"msg": "请登录",
 			})
-			c.Abort()
+			ctx.Abort()
 			return
 		}
 
 		j := NewJWT()
 		claims, err := j.ParseToken(tokenString)
+
+		zap.S().Infof("claims设置：%v", claims)
 		if err != nil {
 			zap.S().Errorf("jwt Parse err:%v", err)
-			c.JSON(http.StatusUnauthorized, dto.Fail(dto.UserTokenErrCode))
-			c.Abort()
+			ctx.JSON(http.StatusUnauthorized, dto.Fail(dto.UserTokenErrCode))
+			ctx.Abort()
 			return
 		}
-		c.Set("claims", claims)
-		c.Next()
+		//zap.S().Debugf(claims)
+		ctx.Set("claims", claims)
+		ctx.Next()
 	}
 }
