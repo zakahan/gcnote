@@ -27,10 +27,10 @@ import (
 // @Produce      json
 // @Param        request  body    dto.UserRegisterRequest  true  "注册请求体"
 // @Success      200      {object} dto.BaseResponse "成功响应(code:0)"
-// @Failure      400      {object} dto.BaseResponse "参数错误 (code: 40000)"
-// @Failure      409      {object} dto.BaseResponse "用户已存在 (code: 40100)"
-// @Failure      409      {object} dto.BaseResponse "电子邮箱已存在 (code: 40103)"
-// @Failure      500      {object} dto.BaseResponse "内部服务器错误 (code: 50000)"
+// @Failure      200      {object} dto.BaseResponse "参数错误 (code: 40000)"
+// @Failure      200      {object} dto.BaseResponse "用户已存在 (code: 40100)"
+// @Failure      200      {object} dto.BaseResponse "电子邮箱已存在 (code: 40103)"
+// @Failure      200      {object} dto.BaseResponse "内部服务器错误 (code: 50000)"
 // @Router       /user/register [post]
 func Register(ctx *gin.Context) {
 	// 参数校验

@@ -25,18 +25,19 @@ import (
 // @Accept       json
 // @Produce      json
 // @Success		 200	{object} dto.BaseResponse "成功响应，data返回用户信息"
-// @Failure		 400	{object} dto.BaseResponse "参数错误(code:40000)"
-// @Faailure     500	{object} dto.BaseResposne "服务器内部错误(code:50000)"
+// @Failure		 200	{object} dto.BaseResponse "参数错误(code:40000)"
+// @Failure		 200	{object} dto.BaseResponse "用户验证错误(code:40101)"
+// @Failure      200	{object} dto.BaseResponse "服务器内部错误(code:50000)"
 // @Router		 /user/info [get]
 func Info(ctx *gin.Context) {
-	claim, exists := ctx.Get("claims")
+	claims, exists := ctx.Get("claims")
 	if !exists {
 		zap.S().Infof("Unable to get the claims")
 		ctx.JSON(http.StatusOK, dto.Fail(dto.UserTokenErrCode))
 		return
 	}
-	zap.S().Debugf("xxx: %v", claim)
-	currentUser := claim.(jwt.MapClaims)
+	zap.S().Debugf("claims: %v", claims)
+	currentUser := claims.(jwt.MapClaims)
 	currentUserId := currentUser["sub"].(string)
 	if currentUserId == "" {
 		zap.S().Debugf("currentUserId is empty")
@@ -55,7 +56,7 @@ func Info(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, dto.SuccessWithData(user))
 		return
 	}
-	// 逻辑处理
+	// 刷新一下redis
 	zap.S().Debugf("refresh user info in redis.")
 	user, err = cache.RefreshUserInfo(ctx.Request.Context(), currentUserId)
 	if err != nil {

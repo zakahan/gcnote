@@ -28,6 +28,9 @@ func InitRouter() *gin.Engine {
 	// 用户处理01
 	group1 := route.Group("user").Use(middleware.VerifyJWT())
 	group1.GET("/info", user_apis.Info)
+	group1.POST("/update_user_name", user_apis.UpdateUserName)
+	group1.POST("/update_password", user_apis.UpdatePassword)
+	group1.POST("/delete", user_apis.Delete)
 
 	// swagger
 	route.GET(

@@ -30,10 +30,10 @@ import (
 // @Produce      json
 // @Param        request  body    dto.UserLoginRequest  true  "登录请求体"
 // @Success      200      {object} dto.BaseResponse "成功响应，返回JWT令牌(code:0)"
-// @Failure      400      {object} dto.BaseResponse "参数错误(code:40000)"
-// @Failure      401      {object} dto.BaseResponse "密码错误(code:40102)"
-// @Failure      404      {object} dto.BaseResponse "记录不存在(code:40001)"
-// @Failure		 500      {object} dto.BaseResponse "服务器内部错误(code:50000)"
+// @Failure      200      {object} dto.BaseResponse "参数错误(code:40000)"
+// @Failure      200      {object} dto.BaseResponse "密码错误(code:40102)"
+// @Failure      200      {object} dto.BaseResponse "记录不存在(code:40001)"
+// @Failure		 200      {object} dto.BaseResponse "服务器内部错误(code:50000)"
 // @Router       /user/login [post]
 func Login(ctx *gin.Context) {
 	// 参数校验

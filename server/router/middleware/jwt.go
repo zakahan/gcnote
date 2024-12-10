@@ -115,7 +115,6 @@ func (j *JWTInfo) ParseToken(tokenString string) (jwt.MapClaims, error) {
 
 	// token 有效性校验
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		fmt.Printf("Token is valid! Claims: %v\n", claims)
 		return claims, nil
 	} else {
 		return nil, fmt.Errorf("invalid token")
@@ -126,7 +125,7 @@ func (j *JWTInfo) ParseToken(tokenString string) (jwt.MapClaims, error) {
 func VerifyJWT() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		tokenString := ctx.GetHeader("token")
-		zap.S().Infof("打印token： %v", tokenString)
+		//zap.S().Debugf("token： %v", tokenString)
 		if tokenString == "" {
 			ctx.JSON(http.StatusUnauthorized, map[string]string{
 				"msg": "请登录",
@@ -138,7 +137,7 @@ func VerifyJWT() gin.HandlerFunc {
 		j := NewJWT()
 		claims, err := j.ParseToken(tokenString)
 
-		zap.S().Infof("claims设置：%v", claims)
+		zap.S().Infof("claims setting：%v", claims)
 		if err != nil {
 			zap.S().Errorf("jwt Parse err:%v", err)
 			ctx.JSON(http.StatusUnauthorized, dto.Fail(dto.UserTokenErrCode))

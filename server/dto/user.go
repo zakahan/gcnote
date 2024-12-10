@@ -17,7 +17,10 @@ type UserLoginRequest struct {
 	Password string `json:"password" binding:"required"`
 }
 
-type UpdateRequest struct {
-	// Id       int    `json:"id" binding:"required"`
-	UserName string `json:"username" binding:"required"`
+type UpdateUserNameRequest struct {
+	UserName string `json:"user_name" binding:"required"`
+}
+
+type UpdatePasswordRequest struct {
+	Password string `json:"password" binding:"required"`
 }
