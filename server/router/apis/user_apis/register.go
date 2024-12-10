@@ -32,19 +32,21 @@ import (
 // @Failure      409      {object} dto.BaseResponse "电子邮箱已存在 (code: 40103)"
 // @Failure      500      {object} dto.BaseResponse "内部服务器错误 (code: 50000)"
 // @Router       /user/register [post]
-func Register(context *gin.Context) {
+func Register(ctx *gin.Context) {
 	// 参数校验
 	var req dto.UserRegisterRequest
-	err := context.ShouldBindJSON(&req) // 检查
+	err := ctx.ShouldBindJSON(&req) // 检查
 	if err != nil {
-		context.JSON(http.StatusOK, dto.Fail(dto.ParamsErrCode))
+		ctx.JSON(http.StatusOK, dto.Fail(dto.ParamsErrCode))
 		return
 	}
 	// 逻辑处理
+	userId := wrench.IdGenerator()
 	userNew := model.User{
+		UserId:   userId,
 		UserName: req.UserName,
-		Password: wrench.HashPassword(req.Password),
 		Email:    req.Email,
+		Password: wrench.HashPassword(req.Password),
 	}
 
 	//
@@ -53,38 +55,36 @@ func Register(context *gin.Context) {
 	// 1. 检查是否存在相同用户名，如果存在则无法注册
 	tx := config.DB.Where("user_name = ?", userNew.UserName).First(&userSearch)
 	if tx.Error != nil && !errors.Is(tx.Error, gorm.ErrRecordNotFound) {
-
 		zap.S().Errorf("Register query user: %v err: %v", userNew.UserName, tx.Error)
-		context.JSON(http.StatusOK, dto.Fail(dto.InternalErrCode))
+		ctx.JSON(http.StatusOK, dto.Fail(dto.InternalErrCode))
 		return
 	}
 	// tx.RowsAffected
 	if tx.RowsAffected != 0 { // 行数不为0
 		// 如果用户已经存在
-		context.JSON(http.StatusOK, dto.Fail(dto.UserExistsErrCode))
+		ctx.JSON(http.StatusOK, dto.Fail(dto.UserExistsErrCode))
 		return
 	}
 
 	// 2. 判断是否存在相同的电子邮箱，如果存在这返回失败
 	tx = config.DB.Where("email = ?", userNew.Email).First(&userSearch)
 	if tx.Error != nil && !errors.Is(tx.Error, gorm.ErrRecordNotFound) {
-
 		zap.S().Errorf("Register create user: %v err: %v", userNew, tx.Error)
-		context.JSON(http.StatusOK, dto.Fail(dto.InternalErrCode))
+		ctx.JSON(http.StatusOK, dto.Fail(dto.InternalErrCode))
 		return
 	}
 	if tx.RowsAffected != 0 { // 行数不为0
 		// 如果用户已经存在
-		context.JSON(http.StatusOK, dto.Fail(dto.UserEmailExistsErrCode))
+		ctx.JSON(http.StatusOK, dto.Fail(dto.UserEmailExistsErrCode))
 		return
 	}
 	// 成功创建
 	tx = config.DB.Create(&userNew)
 	if tx.Error != nil && !errors.Is(tx.Error, gorm.ErrRecordNotFound) {
-
 		zap.S().Errorf("Register create user: %v err: %v", userNew, tx.Error)
-		context.JSON(http.StatusOK, dto.Fail(dto.InternalErrCode))
+		ctx.JSON(http.StatusOK, dto.Fail(dto.InternalErrCode))
 		return
 	}
-	context.JSON(http.StatusOK, dto.Success())
+	zap.S().Infof("Register create user %v done.", userNew.UserName)
+	ctx.JSON(http.StatusOK, dto.Success())
 }
