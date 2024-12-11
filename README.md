@@ -26,11 +26,11 @@
 
 |         进展         | 接口说明       | 接口地址                  | 访问方式 |
 | :------------------: | -------------- | ------------------------- | -------- |
-| :white_check_mark: | 创建知识库     | /knowledge_base/create_kb | POST     |
-| :white_large_square: | 删除知识库     | /knowledge_base/delete_kb | POST     |
-| :white_large_square: | 知识库是否存在 | /knowledge_base/search_kb | GET      |
-| :white_large_square: | 展示知识库清单 | /knowledge_base/show_kbs  | GET      |
-| :white_large_square: | 重命名知识库   | /knowledge_base/rename_kb | POST     |
+| :white_check_mark: | 创建知识库     | /index/create_index | POST     |
+| :white_large_square: | 删除知识库     | /index/delete_index | POST     |
+| :white_large_square: | 知识库是否存在 | /index/search_index | GET      |
+| :white_large_square: | 展示知识库清单 | /index/show_indexs  | GET      |
+| :white_large_square: | 重命名知识库   | /index/rename_index | POST     |
 
 
 
@@ -40,16 +40,16 @@
 
 |         进展         | 接口说明           | 接口地址                     | 访问方式 |
 | :------------------: | ------------------ | ---------------------------- | -------- |
-| :white_large_square: | 新建文档           | /knowledge_base/new_file     | POST     |
-| :white_large_square: | 读取文档           | /knowledge_base/read_file    | POST     |
-| :white_large_square: | 更新文档           | /knowledge_base/update_file  | POST     |
-| :white_large_square: | 导入文档           | /knowledge_base/import_files | POST     |
-| :white_large_square: | 重命名文档         | /knowledge_base/rename_file  | POST     |
-| :white_large_square: | 删除文档到回收站   | /knowledge_base/delete_files | POST     |
-| :white_large_square: | 搜索文档(按文件名) | /knowledge_base/search_file  | POST     |
-| :white_large_square: | 展示知识库文档列表 | /knowledge_base/show_files   | GET      |
-| :white_large_square: | 文档存在           | /knowledge_base/file_exist   | GET      |
-| :white_large_square: | 文档共享           | /knowledge_base/share_files  | POST     |
+| :white_large_square: | 新建文档           | /index/new_file     | POST     |
+| :white_large_square: | 读取文档           | /index/read_file    | POST     |
+| :white_large_square: | 更新文档           | /index/update_file  | POST     |
+| :white_large_square: | 导入文档           | /index/import_files | POST     |
+| :white_large_square: | 重命名文档         | /index/rename_file  | POST     |
+| :white_large_square: | 删除文档到回收站   | /index/delete_files | POST     |
+| :white_large_square: | 搜索文档(按文件名) | /index/search_file  | POST     |
+| :white_large_square: | 展示知识库文档列表 | /index/show_files   | GET      |
+| :white_large_square: | 文档存在           | /index/file_exist   | GET      |
+| :white_large_square: | 文档共享           | /index/share_files  | POST     |
 
 - 新建文档，每次都是新建一个空的存进去先，这样后续所有操作都变成了更新，而不是新建 + 更新
 
@@ -99,4 +99,6 @@
 ## 参考资料
 
 1. [gin-demo](https://github.com/ngyhd/gin-demo)
+   参考了gin-demo的基本框架以及redis和自定义状态码设计。
 2. [JWT介绍](https://blog.csdn.net/weixin_42030357/article/details/95629924)
+   JWT介绍部分参考了此处

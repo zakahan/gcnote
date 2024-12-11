@@ -15,10 +15,9 @@ import (
 	"gcnote/server/model"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
-	"strconv"
 )
 
-// Redis key 规范 s:gin-demo:xxx  s代表key的类型为string gin-demo为服务名 xxx为自定义值
+// Redis key 规范 s:service:xxx  s代表key的类型为string service为服务名 xxx为自定义值
 // s代表string
 // hs代表hashmap
 // se代表set
@@ -54,7 +53,7 @@ func SetUserInfo(ctx context.Context, user model.User) error {
 	if err != nil {
 		return err
 	}
-	_, err = config.RedisClient.Set(ctx, userInfoKey(strconv.Itoa(int(user.ID))), marshal, 0).Result()
+	_, err = config.RedisClient.Set(ctx, userInfoKey(user.UserId), marshal, 0).Result()
 	if err != nil {
 		return err
 	}

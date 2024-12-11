@@ -8,7 +8,6 @@ package index_apis
 
 import (
 	"errors"
-	"fmt"
 	"gcnote/server/config"
 	"gcnote/server/dto"
 	"gcnote/server/model"
@@ -68,13 +67,23 @@ func CreateIndex(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, dto.Fail(dto.IndexExistErrCode))
 		return
 	}
-	// 成功创建
-	tx = config.DB.Create(&indexNew)
-	if tx.Error != nil && !errors.Is(tx.Error, gorm.ErrRecordNotFound) {
-		zap.S().Errorf("Create index %v, err: %v", indexNew.IndexName, tx.Error)
+
+	// 开始事务
+	tx = config.DB.Begin()
+	if tx.Error != nil {
+		zap.S().Errorf("Failed to begin transaction, err: %v", tx.Error)
 		ctx.JSON(http.StatusOK, dto.Fail(dto.InternalErrCode))
 		return
 	}
+	// 成功创建
+	err = tx.Create(&indexNew).Error
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		zap.S().Errorf("Create index %v, err: %v", indexNew.IndexName, tx.Error)
+		tx.Rollback()
+		ctx.JSON(http.StatusOK, dto.Fail(dto.InternalErrCode))
+		return
+	}
+
 	// 文件系统创建
 	kbPath := config.PathCfg.KnowledgeBasePath
 	// 检查路径是否存在
@@ -85,30 +94,33 @@ func CreateIndex(ctx *gin.Context) {
 		zap.S().Infof("路径 %v 创建成功。", kbPath)
 		if err != nil {
 			zap.S().Errorf("创建路径 %v 失败， err: %v", kbPath, err)
-			// 回滚mysql表
+			tx.Rollback()
 			ctx.JSON(http.StatusOK, dto.FailWithMessage(dto.InternalErrCode, "create file dir error"))
 			return
 		}
 	} else if err != nil {
 		zap.S().Errorf("检查路径 %s 时出错: %v\n", kbPath, err)
-		// 回滚mysql表
+		tx.Rollback()
 		ctx.JSON(http.StatusOK, dto.FailWithMessage(dto.InternalErrCode, "create file dir error"))
 		return
 	}
 
 	// 创建名为 xy 的文件夹
 	xyPath := filepath.Join(kbPath, indexId)
-	if err := os.Mkdir(xyPath, os.ModePerm); err != nil {
-		fmt.Printf("创建文件夹 %s 失败: %v\n", xyPath, err)
+	err = os.Mkdir(xyPath, os.ModePerm)
+	if err != nil {
+		zap.S().Errorf("创建文件夹 %s 失败: %v\n", xyPath, err)
+		tx.Rollback()
 		ctx.JSON(http.StatusOK, dto.FailWithMessage(dto.InternalErrCode, "create file dir error"))
+		return
+	}
+
+	err = tx.Commit().Error
+	if err != nil {
+		zap.S().Errorf("Failed to commit transaction, err: %v", err)
+		ctx.JSON(http.StatusOK, dto.Fail(dto.InternalErrCode))
 		return
 	}
 	zap.S().Infof("Create index %v done.", indexNew.IndexName)
 	ctx.JSON(http.StatusOK, dto.Success())
-}
-
-func rollBackCreate(ctx *gin.Context) {
-
-	ctx.JSON(http.StatusOK, dto.FailWithMessage(dto.InternalErrCode, "create file dir error"))
-	return
 }
