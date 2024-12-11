@@ -30,11 +30,14 @@ const (
 	ParamsErrCode         Code = 40000
 	RecordNotFoundErrCode Code = 40001
 
-	//用户业务错误码 01
+	// 用户业务错误码 01
 	UserExistsErrCode      Code = 40100
 	UserTokenErrCode       Code = 40101
 	UserPasswordErrCode    Code = 40102
 	UserEmailExistsErrCode Code = 40103
+
+	// 知识库业务错误码 02
+	IndexExistErrCode Code = 40200
 )
 
 // 系统错误 5xxxx
@@ -56,7 +59,8 @@ func init() {
 	message[UserTokenErrCode] = "登录信息错误"
 	message[UserPasswordErrCode] = "密码错误"
 	message[UserEmailExistsErrCode] = "邮箱已经存在"
-
+	// 402xx 知识库错误
+	message[IndexExistErrCode] = "当前知识库已经存在"
 	// 5xxxx错误message
 	message[InternalErrCode] = "系统内部发生错误"
 

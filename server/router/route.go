@@ -8,6 +8,7 @@ package router
 
 import (
 	_ "gcnote/docs"
+	"gcnote/server/router/apis/index_apis"
 	"gcnote/server/router/apis/user_apis"
 	"gcnote/server/router/middleware"
 	"github.com/gin-contrib/cors"
@@ -31,6 +32,10 @@ func InitRouter() *gin.Engine {
 	group1.POST("/update_user_name", user_apis.UpdateUserName)
 	group1.POST("/update_password", user_apis.UpdatePassword)
 	group1.POST("/delete", user_apis.Delete)
+
+	// 知识库创建等
+	group2 := route.Group("index").Use(middleware.VerifyJWT())
+	group2.POST("/create", index_apis.CreateIndex)
 
 	// swagger
 	route.GET(

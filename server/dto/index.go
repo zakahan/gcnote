@@ -5,3 +5,7 @@
 // -------------------------------------------------
 
 package dto
+
+type IndexCRUDRequset struct {
+	IndexName string `json:"index_name" binding:"required"`
+}
