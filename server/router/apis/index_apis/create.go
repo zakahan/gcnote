@@ -23,6 +23,17 @@ import (
 
 // CreateIndex
 // @Summary 创建知识库
+// @Description 创建知识库(MYSQL + 文件系统已完成)
+// @ID			create-index
+// @Tags		index
+// @Accept		json
+// @Produce		json
+// @Param		request		body		dto.UserLoginRequest true "登录请求体"
+// @Success 	200			{object} 	dto.BaseResponse	"成功响应，返回success"
+// @Failure		200			{object}	dto.BaseResponse	"参数错误(code:40000)"
+// @Failure		200			{object}	dto.BaseResponse	"Token错误(code:40101)"
+// @Failure		200			{object}	dto.BaseResponse	"该知识库已存在(code:40200)"
+// @Failure		200			{object}	dto.BaseResponse	"服务器内部错误(code:50000)"
 func CreateIndex(ctx *gin.Context) {
 	var req dto.IndexCRUDRequset
 	err := ctx.ShouldBindJSON(&req)
@@ -47,17 +58,18 @@ func CreateIndex(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, dto.Fail(dto.ParamsErrCode))
 		return
 	}
-	// 获取了UserId之后，创建知识库
+	// 获取了IndexId之后，创建知识库
 	indexId := wrench.IdGenerator()
 	indexNew := model.Index{
 		IndexId:   indexId,
 		IndexName: req.IndexName,
 		UserId:    currentUserId,
 	}
-	// 查看是否有同名的，如果有，那么就无法创建知识库
+	// 查看是否有同名的，如果有，那么就无法创建知识库（
+	// 这个有问题，是允许重名的！不允许的应该是同一个用户目录下，不允许重名！）
 	indexSearch := model.Index{}
 
-	tx := config.DB.Where("index_name = ?", indexSearch.IndexName).First(&indexSearch)
+	tx := config.DB.Where("index_name = ? AND user_id = ? ", indexSearch.IndexName, currentUserId).First(&indexSearch)
 	if tx.Error != nil && !errors.Is(tx.Error, gorm.ErrRecordNotFound) {
 		zap.S().Errorf("Create index %v, err: %v", indexNew.IndexName, tx.Error)
 		ctx.JSON(http.StatusOK, dto.Fail(dto.InternalErrCode))

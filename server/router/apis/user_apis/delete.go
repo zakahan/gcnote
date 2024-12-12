@@ -29,14 +29,14 @@ import (
 // @Failure 200		{object} dto.BaseResponse "用户验证错误(code:40101)"
 // @Failure 200		{object} dto.BaseResponse "服务器内部错误(code:50000)"
 // @Router	/user/delete [post]
-func Delete(c *gin.Context) {
+func Delete(ctx *gin.Context) {
 	// 这个接口实际上应该是不会开放给用户的，所以不会出现 用户没了，但是jwt还在所以能用的情况
 	// 根据 jwt，取出当前用户信息
-	claims, _ := c.Get("claims") // 是否需要remove这个变量？
+	claims, _ := ctx.Get("claims") // 是否需要remove这个变量？
 	currentUser := claims.(jwt.MapClaims)
 	currentUserId := currentUser["sub"].(string)
 	if currentUserId == "" {
-		c.JSON(http.StatusOK, dto.FailWithMessage(dto.ParamsErrCode, "token is empty"))
+		ctx.JSON(http.StatusOK, dto.FailWithMessage(dto.ParamsErrCode, "token is empty"))
 		return
 	}
 
@@ -45,14 +45,14 @@ func Delete(c *gin.Context) {
 	tx := config.DB.Model(&userInfo).Where("user_id = ?", currentUserId).Delete(&userInfo)
 	if tx.Error != nil {
 		zap.S().Errorf("Delete  userId:%v err:%v", currentUserId, tx.Error)
-		c.JSON(http.StatusOK, dto.Fail(dto.InternalErrCode))
+		ctx.JSON(http.StatusOK, dto.Fail(dto.InternalErrCode))
 		return
 	}
-	err := cache.DelUserInfo(c.Request.Context(), currentUserId)
+	err := cache.DelUserInfo(ctx.Request.Context(), currentUserId)
 	if err != nil {
 		zap.S().Errorf("Delete.DelUserInfo  userId:%v err:%v", currentUserId, tx.Error)
-		c.JSON(http.StatusOK, dto.Fail(dto.InternalErrCode))
+		ctx.JSON(http.StatusOK, dto.Fail(dto.InternalErrCode))
 		return
 	}
-	c.JSON(http.StatusOK, dto.Success())
+	ctx.JSON(http.StatusOK, dto.Success())
 }
