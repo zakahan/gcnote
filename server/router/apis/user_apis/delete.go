@@ -48,6 +48,8 @@ func Delete(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, dto.Fail(dto.InternalErrCode))
 		return
 	}
+
+	// 更新redis
 	err := cache.DelUserInfo(ctx.Request.Context(), currentUserId)
 	if err != nil {
 		zap.S().Errorf("Delete.DelUserInfo  userId:%v err:%v", currentUserId, tx.Error)

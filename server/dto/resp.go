@@ -37,7 +37,8 @@ const (
 	UserEmailExistsErrCode Code = 40103
 
 	// 知识库业务错误码 02
-	IndexExistErrCode Code = 40200
+	IndexExistErrCode    Code = 40200
+	IndexNotExistErrCode Code = 40201
 )
 
 // 系统错误 5xxxx

@@ -15,13 +15,24 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"go.uber.org/zap"
 	"net/http"
+	"os"
+	"path/filepath"
 )
 
 // DeleteIndex
-// goland别他妈动老子注释！
-// redis代码先空着？肯定不行啊
-// 不对，index_name和index_id的决断，这个地方我得好好想想，有点不对。
-// 可以拼接
+// @Summary 删除知识库
+// @Description 删除知识库(MYSQL + 文件系统已完成 + 更新redis)
+// @ID			delete-index
+// @Tags		index
+// @Accept		json
+// @Produce		json
+// @Param		request		body		dto.IndexCRUDRequset true "登录请求体"
+// @Success 	200			{object} 	dto.BaseResponse	"成功响应，返回success"
+// @Failure		200			{object}	dto.BaseResponse	"参数错误(code:40000)"
+// @Failure		200			{object}	dto.BaseResponse	"Token错误(code:40101)"
+// @Failure		200			{object}	dto.BaseResponse	"该知识库不存在(code:40201)"
+// @Failure		200			{object}	dto.BaseResponse	"服务器内部错误(code:50000)"
+// @Router 		/index/delete [post]
 func DeleteIndex(ctx *gin.Context) {
 	var req dto.IndexCRUDRequset
 	err := ctx.ShouldBindJSON(&req)
@@ -46,24 +57,67 @@ func DeleteIndex(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, dto.Fail(dto.ParamsErrCode))
 		return
 	}
-	// helllllll
 	// 查看是否有这个index，然后删除
-	indexInfo := model.Index{}
-	// 删除
-	tx := config.DB.Model(&indexInfo).Where(
+	indexModel := model.Index{}
+	tx := config.DB.Model(indexModel).Where(
 		"index_name = ? AND user_id = ?",
 		req.IndexName, currentUserId,
+	)
+	err = tx.First(&indexModel).Error
+	if err != nil {
+		zap.S().Errorf("failed to find index: %v", err)
+		ctx.JSON(http.StatusOK, dto.Fail(dto.IndexNotExistErrCode))
+		return
+	}
+	indexId := indexModel.IndexId
+	zap.S().Debugf("flag of index , index_id is %v", indexId)
+
+	indexInfo := model.Index{}
+
+	// 开始事务
+	tx = config.DB.Begin()
+	// 删除
+	tx = tx.Model(&indexInfo).Where(
+		"index_id = ?",
+		indexId,
 	).Delete(&indexInfo)
 	if tx.Error != nil {
-		zap.S().Errorf("Delete index id :%v err:%v", req.IndexName, tx.Error)
+		zap.S().Errorf("Delete index id :%v err:%v", indexId, tx.Error)
+		tx.Rollback()
 		ctx.JSON(http.StatusOK, dto.Fail(dto.InternalErrCode))
 		return
 	}
-	err = cache.DelIndexInfo(ctx.Request.Context(), req.IndexName)
+	err = cache.DelIndexInfo(ctx.Request.Context(), indexId)
 	if err != nil {
-		zap.S().Errorf("Delete.DelIndexInfo  userId:%v err:%v", currentUserId, tx.Error)
+		tx.Rollback()
+		zap.S().Errorf("Delete.DelIndexInfo  index_id :%v err:%v", indexId, tx.Error)
 		ctx.JSON(http.StatusOK, dto.Fail(dto.InternalErrCode))
 		return
 	}
+
+	// 文件系统创建
+	kbPath := config.PathCfg.KnowledgeBasePath
+	xyPath := filepath.Join(kbPath, indexId)
+	// 检查路径是否存在
+	_, err = os.Stat(xyPath)
+	if os.IsNotExist(err) {
+		zap.S().Infof("路径 %v 不存在，无法删除操作", xyPath)
+	}
+	// 删除xyPath以及里面的所有文件
+	err = os.RemoveAll(xyPath)
+	if err != nil {
+		zap.S().Errorf("删除路径 %v 失败， err: %v", xyPath, err)
+		tx.Rollback()
+		ctx.JSON(http.StatusOK, dto.Fail(dto.InternalErrCode))
+		return
+	}
+
+	err = tx.Commit().Error
+	if err != nil {
+		zap.S().Errorf("Failed to commit transaction, err: %v", err)
+		ctx.JSON(http.StatusOK, dto.Fail(dto.InternalErrCode))
+		return
+	}
+	zap.S().Infof("Delete index name %v , user id : %v done.", req.IndexName, currentUserId)
 	ctx.JSON(http.StatusOK, dto.Success())
 }

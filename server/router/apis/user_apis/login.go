@@ -68,9 +68,9 @@ func Login(ctx *gin.Context) {
 	// 初始化一个jwt
 	newJwt := middleware.NewJWT()
 	claims := jwt.MapClaims{
-		"sub":  userSearch.UserId,                     // 用户ID
-		"name": userSearch.UserName,                   // 用户名
-		"exp":  time.Now().Add(time.Hour * 24).Unix(), // 过期时间为一天
+		"sub":  userSearch.UserId,                          // 用户ID
+		"name": userSearch.UserName,                        // 用户名
+		"exp":  time.Now().Add(time.Hour * 24 * 30).Unix(), // 过期时间为一个月
 	}
 	// 生成JWT
 	token, err := newJwt.GenerateJWT(claims)
