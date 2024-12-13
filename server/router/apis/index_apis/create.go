@@ -28,7 +28,7 @@ import (
 // @Tags		index
 // @Accept		json
 // @Produce		json
-// @Param		request		body		dto.IndexCRUDRequset true "登录请求体"
+// @Param		request		body		dto.IndexCRUDRequest true "登录请求体"
 // @Success 	200			{object} 	dto.BaseResponse	"成功响应，返回success"
 // @Failure		200			{object}	dto.BaseResponse	"参数错误(code:40000)"
 // @Failure		200			{object}	dto.BaseResponse	"Token错误(code:40101)"
@@ -36,7 +36,7 @@ import (
 // @Failure		200			{object}	dto.BaseResponse	"服务器内部错误(code:50000)"
 // @Router 		/index/create [post]
 func CreateIndex(ctx *gin.Context) {
-	var req dto.IndexCRUDRequset
+	var req dto.IndexCRUDRequest
 	err := ctx.ShouldBindJSON(&req)
 	if err != nil {
 		zap.S().Debugf("mark 1")
@@ -51,6 +51,12 @@ func CreateIndex(ctx *gin.Context) {
 		zap.S().Debugf("mark 2")
 		return
 	}
+	// 验证IndexName的有效性
+	if !wrench.ValidateIndexName(req.IndexName) {
+		zap.S().Debugf("Unaccept index name %v", req.IndexName)
+		ctx.JSON(http.StatusOK, dto.Fail(dto.IndexNameErrCode))
+	}
+
 	zap.S().Debugf("claims: %v", claims)
 	currentUser := claims.(jwt.MapClaims)
 	currentUserId := currentUser["sub"].(string)

@@ -37,6 +37,7 @@ func InitRouter() *gin.Engine {
 	group2 := route.Group("index").Use(middleware.VerifyJWT())
 	group2.POST("/create", index_apis.CreateIndex)
 	group2.POST("/delete", index_apis.DeleteIndex)
+	group2.POST("/rename", index_apis.RenameIndex)
 	group2.GET("/show_all", index_apis.ShowIndexes)
 
 	// swagger

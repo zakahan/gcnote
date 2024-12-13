@@ -23,7 +23,7 @@ import (
 // @Tags		index
 // @Accept		json
 // @Produce		json
-// @Param		request		body		dto.IndexCRUDRequset true "登录请求体"
+// @Param		request		body		dto.IndexCRUDRequest true "登录请求体"
 // @Success 	200			{object} 	dto.BaseResponse	"成功响应，返回success"
 // @Failure		200			{object}	dto.BaseResponse	"参数错误(code:40000)"
 // @Failure		200			{object}	dto.BaseResponse	"Token错误(code:40101)"
@@ -46,7 +46,7 @@ func ShowIndexes(ctx *gin.Context) {
 	}
 	// 查看当前user_id 的所有表内信息，
 	indexModel := model.Index{}
-	tx := config.DB.Model(indexModel).Where(
+	tx := config.DB.Model(&indexModel).Where(
 		"user_id = ?",
 		currentUserId,
 	)

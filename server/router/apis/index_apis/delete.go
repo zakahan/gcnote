@@ -7,7 +7,6 @@
 package index_apis
 
 import (
-	"gcnote/server/cache"
 	"gcnote/server/config"
 	"gcnote/server/dto"
 	"gcnote/server/model"
@@ -26,7 +25,7 @@ import (
 // @Tags		index
 // @Accept		json
 // @Produce		json
-// @Param		request		body		dto.IndexCRUDRequset true "登录请求体"
+// @Param		request		body		dto.IndexCRUDRequest true "登录请求体"
 // @Success 	200			{object} 	dto.BaseResponse	"成功响应，返回success"
 // @Failure		200			{object}	dto.BaseResponse	"参数错误(code:40000)"
 // @Failure		200			{object}	dto.BaseResponse	"Token错误(code:40101)"
@@ -34,7 +33,7 @@ import (
 // @Failure		200			{object}	dto.BaseResponse	"服务器内部错误(code:50000)"
 // @Router 		/index/delete [post]
 func DeleteIndex(ctx *gin.Context) {
-	var req dto.IndexCRUDRequset
+	var req dto.IndexCRUDRequest
 	err := ctx.ShouldBindJSON(&req)
 	if err != nil {
 		zap.S().Debugf("mark 1")
@@ -59,10 +58,11 @@ func DeleteIndex(ctx *gin.Context) {
 	}
 	// 查看是否有这个index，然后删除
 	indexModel := model.Index{}
-	tx := config.DB.Model(indexModel).Where(
+	tx := config.DB.Model(&indexModel).Where(
 		"index_name = ? AND user_id = ?",
 		req.IndexName, currentUserId,
 	)
+	// 不需要再验证是否只有一条了，因为已经再create的时候验证过了
 	err = tx.First(&indexModel).Error
 	if err != nil {
 		zap.S().Errorf("failed to find index: %v", err)
@@ -84,13 +84,6 @@ func DeleteIndex(ctx *gin.Context) {
 	if tx.Error != nil {
 		zap.S().Errorf("Delete index id :%v err:%v", indexId, tx.Error)
 		tx.Rollback()
-		ctx.JSON(http.StatusOK, dto.Fail(dto.InternalErrCode))
-		return
-	}
-	err = cache.DelIndexInfo(ctx.Request.Context(), indexId)
-	if err != nil {
-		tx.Rollback()
-		zap.S().Errorf("Delete.DelIndexInfo  index_id :%v err:%v", indexId, tx.Error)
 		ctx.JSON(http.StatusOK, dto.Fail(dto.InternalErrCode))
 		return
 	}

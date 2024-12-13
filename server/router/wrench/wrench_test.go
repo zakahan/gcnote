@@ -12,12 +12,12 @@ import (
 )
 
 func TestValidString(t *testing.T) {
-	x := validateIndexName("../x")
+	x := ValidateIndexName("../x")
 	fmt.Println(x)
-	x = validateIndexName("app")
+	x = ValidateIndexName("app")
 	fmt.Println(x)
-	x = validateIndexName("strings")
+	x = ValidateIndexName("strings")
 	fmt.Println(x)
-	x = validateIndexName("知识内容")
+	x = ValidateIndexName("知识内容")
 	fmt.Println(x)
 }

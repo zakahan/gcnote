@@ -39,6 +39,7 @@ const (
 	// 知识库业务错误码 02
 	IndexExistErrCode    Code = 40200
 	IndexNotExistErrCode Code = 40201
+	IndexNameErrCode     Code = 40202
 )
 
 // 系统错误 5xxxx
@@ -62,6 +63,7 @@ func init() {
 	message[UserEmailExistsErrCode] = "邮箱已经存在"
 	// 402xx 知识库错误
 	message[IndexExistErrCode] = "当前知识库已经存在"
+	message[IndexNameErrCode] = "知识库名称不允许出现`?,\"/\\*<>|`中的任何一个符号"
 	// 5xxxx错误message
 	message[InternalErrCode] = "系统内部发生错误"
 

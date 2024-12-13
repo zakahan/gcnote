@@ -59,7 +59,9 @@ func UpdateUserName(ctx *gin.Context) {
 	// 逻辑处理部分
 	userInfo := model.User{}
 	//tx := config.DB.Where("user_id = ?", currentUserId).First(&userInfo)
-	tx := config.DB.Model(userInfo).Where("user_id = ?", currentUserId).Update("user_name", req.UserName)
+	tx := config.DB.Model(&userInfo).Where(
+		"user_id = ?", currentUserId,
+	).Update("user_name", req.UserName)
 	if tx.Error != nil {
 		if errors.Is(tx.Error, gorm.ErrRecordNotFound) {
 			zap.S().Errorf("User with user_id %v not found", currentUserId)
@@ -120,7 +122,7 @@ func UpdatePassword(ctx *gin.Context) {
 	// 逻辑处理部分
 	userInfo := model.User{}
 	//tx := config.DB.Where("user_id = ?", currentUserId).First(&userInfo)
-	tx := config.DB.Model(userInfo).Where("user_id = ?", currentUserId).Update("password", wrench.HashPassword(req.Password))
+	tx := config.DB.Model(&userInfo).Where("user_id = ?", currentUserId).Update("password", wrench.HashPassword(req.Password))
 
 	if tx.Error != nil {
 		if errors.Is(tx.Error, gorm.ErrRecordNotFound) {
