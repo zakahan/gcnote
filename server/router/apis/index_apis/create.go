@@ -30,10 +30,10 @@ import (
 // @Produce		json
 // @Param		request		body		dto.IndexCRUDRequest true "登录请求体"
 // @Success 	200			{object} 	dto.BaseResponse	"成功响应，返回success"
-// @Failure		200			{object}	dto.BaseResponse	"参数错误(code:40000)"
-// @Failure		200			{object}	dto.BaseResponse	"Token错误(code:40101)"
-// @Failure		200			{object}	dto.BaseResponse	"该知识库已存在(code:40200)"
-// @Failure		200			{object}	dto.BaseResponse	"服务器内部错误(code:50000)"
+// @Failure		400			{object}	dto.BaseResponse	"参数错误(code:40000)"
+// @Failure		401			{object}	dto.BaseResponse	"Token错误(code:40101)"
+// @Failure		409			{object}	dto.BaseResponse	"该知识库已存在(code:40200)"
+// @Failure		500			{object}	dto.BaseResponse	"服务器内部错误(code:50000)"
 // @Router 		/index/create [post]
 func CreateIndex(ctx *gin.Context) {
 	var req dto.IndexCRUDRequest
@@ -41,20 +41,20 @@ func CreateIndex(ctx *gin.Context) {
 	if err != nil {
 		zap.S().Debugf("mark 1")
 		zap.S().Debugf("params : %+v", req)
-		ctx.JSON(http.StatusOK, dto.Fail(dto.ParamsErrCode))
+		ctx.JSON(http.StatusBadRequest, dto.Fail(dto.ParamsErrCode))
 		return
 	}
 	claims, exists := ctx.Get("claims")
 	if !exists {
 		zap.S().Infof("Unable to get the claims")
-		ctx.JSON(http.StatusOK, dto.Fail(dto.UserTokenErrCode))
+		ctx.JSON(http.StatusUnauthorized, dto.Fail(dto.UserTokenErrCode))
 		zap.S().Debugf("mark 2")
 		return
 	}
 	// 验证IndexName的有效性
 	if !wrench.ValidateIndexName(req.IndexName) {
 		zap.S().Debugf("Unaccept index name %v", req.IndexName)
-		ctx.JSON(http.StatusOK, dto.Fail(dto.IndexNameErrCode))
+		ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.IndexNameErrCode))
 	}
 
 	zap.S().Debugf("claims: %v", claims)
@@ -62,7 +62,7 @@ func CreateIndex(ctx *gin.Context) {
 	currentUserId := currentUser["sub"].(string)
 	if currentUserId == "" {
 		zap.S().Debugf("currentUserId is empty")
-		ctx.JSON(http.StatusOK, dto.Fail(dto.ParamsErrCode))
+		ctx.JSON(http.StatusBadRequest, dto.Fail(dto.ParamsErrCode))
 		return
 	}
 	// 获取了IndexId之后，创建知识库
@@ -76,14 +76,15 @@ func CreateIndex(ctx *gin.Context) {
 	// 这个有问题，是允许重名的！不允许的应该是同一个用户目录下，不允许重名！）
 	indexSearch := model.Index{}
 
-	tx := config.DB.Where("index_name = ? AND user_id = ? ", indexSearch.IndexName, currentUserId).First(&indexSearch)
+	tx := config.DB.Where("index_name = ? AND user_id = ? ",
+		req.IndexName, currentUserId).First(&indexSearch)
 	if tx.Error != nil && !errors.Is(tx.Error, gorm.ErrRecordNotFound) {
 		zap.S().Errorf("Create index %v, err: %v", indexNew.IndexName, tx.Error)
-		ctx.JSON(http.StatusOK, dto.Fail(dto.InternalErrCode))
+		ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
 		return
 	}
 	if tx.RowsAffected != 0 { // 行数不为零，即存在同名知识库 那就不允许
-		ctx.JSON(http.StatusOK, dto.Fail(dto.IndexExistErrCode))
+		ctx.JSON(http.StatusConflict, dto.Fail(dto.IndexExistErrCode))
 		return
 	}
 
@@ -91,7 +92,7 @@ func CreateIndex(ctx *gin.Context) {
 	tx = config.DB.Begin()
 	if tx.Error != nil {
 		zap.S().Errorf("Failed to begin transaction, err: %v", tx.Error)
-		ctx.JSON(http.StatusOK, dto.Fail(dto.InternalErrCode))
+		ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
 		return
 	}
 	// 成功创建
@@ -99,7 +100,7 @@ func CreateIndex(ctx *gin.Context) {
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		zap.S().Errorf("Create index %v, err: %v", indexNew.IndexName, tx.Error)
 		tx.Rollback()
-		ctx.JSON(http.StatusOK, dto.Fail(dto.InternalErrCode))
+		ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
 		return
 	}
 
@@ -114,13 +115,13 @@ func CreateIndex(ctx *gin.Context) {
 		if err != nil {
 			zap.S().Errorf("创建路径 %v 失败， err: %v", kbPath, err)
 			tx.Rollback()
-			ctx.JSON(http.StatusOK, dto.FailWithMessage(dto.InternalErrCode, "create file dir error"))
+			ctx.JSON(http.StatusInternalServerError, dto.FailWithMessage(dto.InternalErrCode, "create file dir error"))
 			return
 		}
 	} else if err != nil {
 		zap.S().Errorf("检查路径 %s 时出错: %v\n", kbPath, err)
 		tx.Rollback()
-		ctx.JSON(http.StatusOK, dto.FailWithMessage(dto.InternalErrCode, "create file dir error"))
+		ctx.JSON(http.StatusInternalServerError, dto.FailWithMessage(dto.InternalErrCode, "create file dir error"))
 		return
 	}
 
@@ -130,14 +131,14 @@ func CreateIndex(ctx *gin.Context) {
 	if err != nil {
 		zap.S().Errorf("创建文件夹 %s 失败: %v\n", xyPath, err)
 		tx.Rollback()
-		ctx.JSON(http.StatusOK, dto.FailWithMessage(dto.InternalErrCode, "create file dir error"))
+		ctx.JSON(http.StatusInternalServerError, dto.FailWithMessage(dto.InternalErrCode, "create file dir error"))
 		return
 	}
 
 	err = tx.Commit().Error
 	if err != nil {
 		zap.S().Errorf("Failed to commit transaction, err: %v", err)
-		ctx.JSON(http.StatusOK, dto.Fail(dto.InternalErrCode))
+		ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
 		return
 	}
 	zap.S().Infof("Create index %v done.", indexNew.IndexName)

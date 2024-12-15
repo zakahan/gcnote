@@ -27,10 +27,10 @@ import (
 // @Produce		json
 // @Param		request		body		dto.IndexCRUDRequest true "登录请求体"
 // @Success 	200			{object} 	dto.BaseResponse	"成功响应，返回success"
-// @Failure		200			{object}	dto.BaseResponse	"参数错误(code:40000)"
-// @Failure		200			{object}	dto.BaseResponse	"Token错误(code:40101)"
-// @Failure		200			{object}	dto.BaseResponse	"该知识库不存在(code:40201)"
-// @Failure		200			{object}	dto.BaseResponse	"服务器内部错误(code:50000)"
+// @Failure		400			{object}	dto.BaseResponse	"参数错误(code:40000)"
+// @Failure		401			{object}	dto.BaseResponse	"Token错误(code:40101)"
+// @Failure		404			{object}	dto.BaseResponse	"该知识库不存在(code:40201)"
+// @Failure		500			{object}	dto.BaseResponse	"服务器内部错误(code:50000)"
 // @Router 		/index/delete [post]
 func DeleteIndex(ctx *gin.Context) {
 	var req dto.IndexCRUDRequest
@@ -38,13 +38,13 @@ func DeleteIndex(ctx *gin.Context) {
 	if err != nil {
 		zap.S().Debugf("mark 1")
 		zap.S().Debugf("params : %+v", req)
-		ctx.JSON(http.StatusOK, dto.Fail(dto.ParamsErrCode))
+		ctx.JSON(http.StatusBadRequest, dto.Fail(dto.ParamsErrCode))
 		return
 	}
 	claims, exists := ctx.Get("claims")
 	if !exists {
 		zap.S().Infof("Unable to get the claims")
-		ctx.JSON(http.StatusOK, dto.Fail(dto.UserTokenErrCode))
+		ctx.JSON(http.StatusUnauthorized, dto.Fail(dto.UserTokenErrCode))
 		zap.S().Debugf("mark 2")
 		return
 	}
@@ -53,7 +53,7 @@ func DeleteIndex(ctx *gin.Context) {
 	currentUserId := currentUser["sub"].(string)
 	if currentUserId == "" {
 		zap.S().Debugf("currentUserId is empty")
-		ctx.JSON(http.StatusOK, dto.Fail(dto.ParamsErrCode))
+		ctx.JSON(http.StatusBadRequest, dto.Fail(dto.ParamsErrCode))
 		return
 	}
 	// 查看是否有这个index，然后删除
@@ -66,7 +66,7 @@ func DeleteIndex(ctx *gin.Context) {
 	err = tx.First(&indexModel).Error
 	if err != nil {
 		zap.S().Errorf("failed to find index: %v", err)
-		ctx.JSON(http.StatusOK, dto.Fail(dto.IndexNotExistErrCode))
+		ctx.JSON(http.StatusNotFound, dto.Fail(dto.IndexNotExistErrCode))
 		return
 	}
 	indexId := indexModel.IndexId
@@ -84,7 +84,7 @@ func DeleteIndex(ctx *gin.Context) {
 	if tx.Error != nil {
 		zap.S().Errorf("Delete index id :%v err:%v", indexId, tx.Error)
 		tx.Rollback()
-		ctx.JSON(http.StatusOK, dto.Fail(dto.InternalErrCode))
+		ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
 		return
 	}
 
@@ -101,14 +101,14 @@ func DeleteIndex(ctx *gin.Context) {
 	if err != nil {
 		zap.S().Errorf("删除路径 %v 失败， err: %v", xyPath, err)
 		tx.Rollback()
-		ctx.JSON(http.StatusOK, dto.Fail(dto.InternalErrCode))
+		ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
 		return
 	}
 
 	err = tx.Commit().Error
 	if err != nil {
 		zap.S().Errorf("Failed to commit transaction, err: %v", err)
-		ctx.JSON(http.StatusOK, dto.Fail(dto.InternalErrCode))
+		ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
 		return
 	}
 	zap.S().Infof("Delete index name %v , user id : %v done.", req.IndexName, currentUserId)

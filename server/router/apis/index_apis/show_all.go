@@ -25,15 +25,15 @@ import (
 // @Produce		json
 // @Param		request		body		dto.IndexCRUDRequest true "登录请求体"
 // @Success 	200			{object} 	dto.BaseResponse	"成功响应，返回success"
-// @Failure		200			{object}	dto.BaseResponse	"参数错误(code:40000)"
-// @Failure		200			{object}	dto.BaseResponse	"Token错误(code:40101)"
-// @Failure		200			{object}	dto.BaseResponse	"服务器内部错误(code:50000)"
+// @Failure		400			{object}	dto.BaseResponse	"参数错误(code:40000)"
+// @Failure		401			{object}	dto.BaseResponse	"Token错误(code:40101)"
+// @Failure		500			{object}	dto.BaseResponse	"服务器内部错误(code:50000)"
 // @Router 		/index/show_all [get]
 func ShowIndexes(ctx *gin.Context) {
 	claims, exists := ctx.Get("claims")
 	if !exists {
 		zap.S().Infof("Unable to get the claims")
-		ctx.JSON(http.StatusOK, dto.Fail(dto.UserTokenErrCode))
+		ctx.JSON(http.StatusUnauthorized, dto.Fail(dto.UserTokenErrCode))
 		return
 	}
 	zap.S().Debugf("claims: %v", claims)
@@ -41,7 +41,7 @@ func ShowIndexes(ctx *gin.Context) {
 	currentUserId := currentUser["sub"].(string)
 	if currentUserId == "" {
 		zap.S().Debugf("currentUserId is empty")
-		ctx.JSON(http.StatusOK, dto.Fail(dto.ParamsErrCode))
+		ctx.JSON(http.StatusBadRequest, dto.Fail(dto.ParamsErrCode))
 		return
 	}
 	// 查看当前user_id 的所有表内信息，
@@ -54,7 +54,7 @@ func ShowIndexes(ctx *gin.Context) {
 	err := tx.Find(&indexList).Error
 	if err != nil {
 		zap.S().Errorf("failed to find index: %v", err)
-		ctx.JSON(http.StatusOK, dto.Fail(dto.InternalErrCode))
+		ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
 		return
 	}
 	ctx.JSON(http.StatusOK, dto.SuccessWithData(indexList))

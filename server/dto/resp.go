@@ -40,6 +40,11 @@ const (
 	IndexExistErrCode    Code = 40200
 	IndexNotExistErrCode Code = 40201
 	IndexNameErrCode     Code = 40202
+
+	// 文件业务错误码 03
+	KBFileNameErrCode     Code = 40300
+	KBFileExistErrCode    Code = 40301
+	KBFileNotExistErrCode Code = 40302
 )
 
 // 系统错误 5xxxx
@@ -63,11 +68,36 @@ func init() {
 	message[UserEmailExistsErrCode] = "邮箱已经存在"
 	// 402xx 知识库错误
 	message[IndexExistErrCode] = "当前知识库已经存在"
+	message[IndexNotExistErrCode] = "当前知识库不存在"
 	message[IndexNameErrCode] = "知识库名称不允许出现`?,\"/\\*<>|`中的任何一个符号"
+	// 403xx 文件错误
+	message[KBFileNameErrCode] = "文件名称不允许出现`?,\"/\\*<>|`中的任何一个符号"
+	message[KBFileExistErrCode] = "当前知识库已经存在"
+	message[KBFileNotExistErrCode] = "当前知识库不存在"
 	// 5xxxx错误message
 	message[InternalErrCode] = "系统内部发生错误"
 
 }
+
+/*
+目前的一些自定义状态码和HTTP状态码对照
+| 自定义状态码            | HTTP状态码                | 含义                                       |
+|-------------------------|---------------------------|--------------------------------------------|
+| `SuccessCode`           | `http.StatusOK` (200)     | 成功                                       |
+| `ParamsErrCode`         | `http.StatusBadRequest` (400) | 参数错误                                   |
+| `RecordNotFoundErrCode` | `http.StatusNotFound` (404) | 记录不存在                                 |
+| `UserExistsErrCode`     | `http.StatusConflict` (409) | 用户已经存在                               |
+| `UserTokenErrCode`      | `http.StatusUnauthorized` (401) | 登录信息错误                             |
+| `UserPasswordErrCode`   | `http.StatusUnauthorized` (401) | 密码错误                                   |
+| `UserEmailExistsErrCode`| `http.StatusConflict` (409) | 邮箱已经存在                               |
+| `IndexExistErrCode`     | `http.StatusConflict` (409) | 当前知识库已经存在                         |
+| `IndexNotExistErrCode`  | `http.StatusNotFound` (404) | 当前知识库不存在                           |
+| `IndexNameErrCode`      | `http.StatusBadRequest` (400) | 知识库名称不允许出现特定符号               |
+| `KBFileNameErrCode`     | `http.StatusBadRequest` (400) | 文件名称不允许出现特定符号                 |
+| `KBFileExistErrCode`    | `http.StatusConflict` (409) | 当前知识库已经存在                         |
+| `KBFileNotExistErrCode` | `http.StatusNotFound` (404) | 当前知识库不存在                           |
+| `InternalErrCode`       | `http.StatusInternalServerError` (500) | 系统内部发生错误                           |
+*/
 
 type BaseResponse struct {
 	Code Code

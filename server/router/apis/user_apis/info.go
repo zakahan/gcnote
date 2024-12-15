@@ -26,14 +26,14 @@ import (
 // @Produce      json
 // @Success		 200	{object} dto.BaseResponse "成功响应，data返回用户信息"
 // @Failure		 200	{object} dto.BaseResponse "参数错误(code:40000)"
-// @Failure		 200	{object} dto.BaseResponse "用户验证错误(code:40101)"
-// @Failure      200	{object} dto.BaseResponse "服务器内部错误(code:50000)"
+// @Failure		 401	{object} dto.BaseResponse "用户验证错误(code:40101)"
+// @Failure      50	{object} dto.BaseResponse "服务器内部错误(code:50000)"
 // @Router		 /user/info [get]
 func Info(ctx *gin.Context) {
 	claims, exists := ctx.Get("claims")
 	if !exists {
 		zap.S().Infof("Unable to get the claims")
-		ctx.JSON(http.StatusOK, dto.Fail(dto.UserTokenErrCode))
+		ctx.JSON(http.StatusUnauthorized, dto.Fail(dto.UserTokenErrCode))
 		return
 	}
 	zap.S().Debugf("claims: %v", claims)
@@ -41,14 +41,14 @@ func Info(ctx *gin.Context) {
 	currentUserId := currentUser["sub"].(string)
 	if currentUserId == "" {
 		zap.S().Debugf("currentUserId is empty")
-		ctx.JSON(http.StatusOK, dto.Fail(dto.ParamsErrCode))
+		ctx.JSON(http.StatusBadRequest, dto.Fail(dto.ParamsErrCode))
 		return
 	}
 	// 查看缓存
 	user, err := cache.GetUserInfo(ctx.Request.Context(), currentUserId)
 	if !errors.Is(err, redis.Nil) && err != nil {
 		zap.S().Errorf("Info.cache.GetUserInfo  userId:%+v err:%v", currentUserId, err)
-		ctx.JSON(http.StatusOK, dto.Fail(dto.InternalErrCode))
+		ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
 		return
 	}
 	if user != nil {
@@ -61,7 +61,7 @@ func Info(ctx *gin.Context) {
 	user, err = cache.RefreshUserInfo(ctx.Request.Context(), currentUserId)
 	if err != nil {
 		zap.S().Errorf("Info.refreshUserInfoCache  user:%+v err:%v", currentUserId, err)
-		ctx.JSON(http.StatusOK, dto.Fail(dto.InternalErrCode))
+		ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
 	}
 
 	ctx.JSON(http.StatusOK, dto.SuccessWithData(user))

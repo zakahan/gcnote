@@ -30,17 +30,17 @@ import (
 // @Produce      json
 // @Param        request  body    dto.UserLoginRequest  true  "登录请求体"
 // @Success      200      {object} dto.BaseResponse "成功响应，返回JWT令牌(code:0)"
-// @Failure      200      {object} dto.BaseResponse "参数错误(code:40000)"
-// @Failure      200      {object} dto.BaseResponse "密码错误(code:40102)"
-// @Failure      200      {object} dto.BaseResponse "记录不存在(code:40001)"
-// @Failure		 200      {object} dto.BaseResponse "服务器内部错误(code:50000)"
+// @Failure      400      {object} dto.BaseResponse "参数错误(code:40000)"
+// @Failure      401      {object} dto.BaseResponse "密码错误(code:40102)"
+// @Failure      404      {object} dto.BaseResponse "记录不存在(code:40001)"
+// @Failure		 500      {object} dto.BaseResponse "服务器内部错误(code:50000)"
 // @Router       /user/login [post]
 func Login(ctx *gin.Context) {
 	// 参数校验
 	var req dto.UserLoginRequest
 	err := ctx.ShouldBindJSON(&req)
 	if err != nil {
-		ctx.JSON(http.StatusOK, dto.Fail(dto.ParamsErrCode))
+		ctx.JSON(http.StatusBadRequest, dto.Fail(dto.ParamsErrCode))
 		return
 	}
 	// 逻辑处理，查询是否在数据库，如果在就登录成功，否则失败
@@ -50,18 +50,18 @@ func Login(ctx *gin.Context) {
 	tx := config.DB.Where("user_name =?", userSearch.UserName).First(&userSearch)
 	if tx.Error != nil && !errors.Is(tx.Error, gorm.ErrRecordNotFound) {
 		zap.S().Errorf("Login query user:%+v err:%v", userSearch, tx.Error)
-		ctx.JSON(http.StatusOK, dto.Fail(dto.InternalErrCode))
+		ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
 		return
 	}
 	// 然后是查看用户是否存在
 	if userSearch.ID == 0 {
-		ctx.JSON(http.StatusOK, dto.FailWithMessage(dto.RecordNotFoundErrCode, "用户账号不存在"))
+		ctx.JSON(http.StatusNotFound, dto.FailWithMessage(dto.RecordNotFoundErrCode, "用户账号不存在"))
 		return
 	}
 
 	// 密码校验
 	if wrench.CheckPassword(userSearch.Password, req.Password) != nil {
-		ctx.JSON(http.StatusOK, dto.Fail(dto.UserPasswordErrCode))
+		ctx.JSON(http.StatusUnauthorized, dto.Fail(dto.UserPasswordErrCode))
 		return
 	}
 	// 这代表成功了，然后提示登录成功

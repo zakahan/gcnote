@@ -9,6 +9,7 @@ package router
 import (
 	_ "gcnote/docs"
 	"gcnote/server/router/apis/index_apis"
+	"gcnote/server/router/apis/kb_apis"
 	"gcnote/server/router/apis/user_apis"
 	"gcnote/server/router/middleware"
 	"github.com/gin-contrib/cors"
@@ -39,6 +40,10 @@ func InitRouter() *gin.Engine {
 	group2.POST("/delete", index_apis.DeleteIndex)
 	group2.POST("/rename", index_apis.RenameIndex)
 	group2.GET("/show_all", index_apis.ShowIndexes)
+
+	// 知识库文件创建
+	group3 := route.Group("kb_file").Use(middleware.VerifyJWT())
+	group3.POST("/create", kb_apis.CreateKBFile)
 
 	// swagger
 	route.GET(

@@ -28,11 +28,10 @@ import (
 // @Produce		json
 // @Param		request		body		dto.IndexCRUDRequest true "登录请求体"
 // @Success 	200			{object} 	dto.BaseResponse	"成功响应，返回success"
-// @Failure		200			{object}	dto.BaseResponse	"参数错误(code:40000)"
-// @Failure		200			{object}	dto.BaseResponse	"新索引名称不符合规范(code:40202)"
-// @Failure		200			{object}	dto.BaseResponse	"Token错误(code:40101)"
-// @Failure		200			{object}	dto.BaseResponse	"原索引记录不存在(code:40201)"
-// @Failure		200			{object}	dto.BaseResponse	"服务器内部错误(code:50000)"
+// @Failure		400			{object}	dto.BaseResponse	"参数错误(code:40000)、新索引名称不符合规范(code:40202)"
+// @Failure		401			{object}	dto.BaseResponse	"Token错误(code:40101)"
+// @Failure		404			{object}	dto.BaseResponse	"原索引记录不存在(code:40201)"
+// @Failure		500			{object}	dto.BaseResponse	"服务器内部错误(code:50000)"
 // @Router 		/index/rename [post]
 func RenameIndex(ctx *gin.Context) {
 	var req dto.IndexRenameRequest
@@ -40,18 +39,18 @@ func RenameIndex(ctx *gin.Context) {
 	if err != nil {
 		zap.S().Debugf("mark 1")
 		zap.S().Debugf("params : %+v", req)
-		ctx.JSON(http.StatusOK, dto.Fail(dto.ParamsErrCode))
+		ctx.JSON(http.StatusBadRequest, dto.Fail(dto.ParamsErrCode))
 		return
 	}
 	// 检查destName是否符合要求
 	if !wrench.ValidateIndexName(req.DestIndexName) {
 		zap.S().Debugf("Unaccept index name %v", req.DestIndexName)
-		ctx.JSON(http.StatusOK, dto.FailWithMessage(dto.IndexNameErrCode, "dest index name not allow."))
+		ctx.JSON(http.StatusBadRequest, dto.FailWithMessage(dto.IndexNameErrCode, "dest index name not allow."))
 	}
 	claims, exists := ctx.Get("claims")
 	if !exists {
 		zap.S().Infof("Unable to get the claims")
-		ctx.JSON(http.StatusOK, dto.Fail(dto.UserTokenErrCode))
+		ctx.JSON(http.StatusUnauthorized, dto.Fail(dto.UserTokenErrCode))
 		return
 	}
 	zap.S().Debugf("claims: %v", claims)
@@ -59,7 +58,7 @@ func RenameIndex(ctx *gin.Context) {
 	currentUserId := currentUser["sub"].(string)
 	if currentUserId == "" {
 		zap.S().Debugf("currentUserId is empty")
-		ctx.JSON(http.StatusOK, dto.Fail(dto.ParamsErrCode))
+		ctx.JSON(http.StatusUnauthorized, dto.Fail(dto.ParamsErrCode))
 		return
 	}
 	// 首先查看是否存在被命名的知识库，然后查看是否存在新名称的知识库，如果存在就拒绝（同一用户）
@@ -77,14 +76,14 @@ func RenameIndex(ctx *gin.Context) {
 				"User with user_id %v source_index_name %v not found",
 				currentUserId, req.SourceIndexName)
 			ctx.JSON(
-				http.StatusOK,
+				http.StatusNotFound,
 				dto.FailWithMessage(dto.IndexNotExistErrCode, "try to rename the index but record note found."),
 			)
 		} else {
 			zap.S().Errorf(
 				"Unexcept Error: User with user_id %v source_index_name %v , ",
 				currentUserId, req.SourceIndexName)
-			ctx.JSON(http.StatusOK, dto.Fail(dto.InternalErrCode))
+			ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
 		}
 	}
 	ctx.JSON(http.StatusOK, dto.Success())
