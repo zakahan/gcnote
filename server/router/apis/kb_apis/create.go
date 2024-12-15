@@ -26,7 +26,7 @@ import (
 2. 获取userId
 3. 验证index存在（所以说redis还是得搞，格式就是user_id/index_name/把）  redis最后补上
 4. 在kb_file表新建表项（事务
-5. 创建对应的文件夹（kb_file_id/image, kb_file_id/file.md)
+5. 创建对应的文件夹（kb_file_id/images, kb_file_id/file.md)
 
 */
 
@@ -94,35 +94,35 @@ func CreateKBFile(ctx *gin.Context) {
 	}
 	err = tx.Create(&KBFileNew).Error
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-		zap.S().Errorf("Create index %v, Error: %v", KBFileNew.KBFileName, tx.Error)
+		zap.S().Errorf("Create kbfile %v, Error: %v", KBFileNew.KBFileName, tx.Error)
 		tx.Rollback()
 		ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
 		return
 	}
 	// 文件系统
 	kbPath := config.PathCfg.KnowledgeBasePath
-	kbFilePath := filepath.Join(kbPath, indexSearch.IndexId, KBId)
-	err = os.Mkdir(kbFilePath, os.ModePerm)
+	kbDirPath := filepath.Join(kbPath, indexSearch.IndexId, KBId)
+	err = os.Mkdir(kbDirPath, os.ModePerm)
 	if err != nil {
-		zap.S().Errorf("Create KBFile Dir %s Error: %v\n", kbFilePath, err)
+		zap.S().Errorf("Create KBFile Dir %s Error: %v\n", kbDirPath, err)
 		tx.Rollback()
 		ctx.JSON(http.StatusInternalServerError, dto.FailWithMessage(dto.InternalErrCode, "create file dir error"))
 		return
 	}
-	// 生成文件夹 image
-	imageDirPath := filepath.Join(kbFilePath, "image")
-	err = os.Mkdir(imageDirPath, os.ModePerm)
+	// 生成文件夹 images
+	imagesDirPath := filepath.Join(kbDirPath, "images")
+	err = os.Mkdir(imagesDirPath, os.ModePerm)
 	if err != nil {
-		zap.S().Errorf("Create Image Dir %s Error: %v\n", imageDirPath, err)
+		zap.S().Errorf("Create Image Dir %s Error: %v\n", imagesDirPath, err)
 		tx.Rollback()
 		ctx.JSON(http.StatusInternalServerError, dto.FailWithMessage(dto.InternalErrCode, "create file dir error"))
 		return
 	}
 	// 创建md文件
-	mdPath := filepath.Join(kbFilePath, req.KBFileName+".md")
+	mdPath := filepath.Join(kbDirPath, req.KBFileName+".md")
 	file, err := os.Create(mdPath)
 	if err != nil {
-		zap.S().Errorf("Create File %s Error: %v\n", mdPath, err)
+		zap.S().Errorf("Create File %s Error: %v", mdPath, err)
 		tx.Rollback()
 		ctx.JSON(http.StatusInternalServerError, dto.FailWithMessage(dto.InternalErrCode, "create file dir error"))
 		return

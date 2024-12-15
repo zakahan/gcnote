@@ -44,6 +44,7 @@ func InitRouter() *gin.Engine {
 	// 知识库文件创建
 	group3 := route.Group("kb_file").Use(middleware.VerifyJWT())
 	group3.POST("/create", kb_apis.CreateKBFile)
+	group3.POST("/add", kb_apis.AddKBFile)
 
 	// swagger
 	route.GET(

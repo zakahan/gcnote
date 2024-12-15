@@ -33,6 +33,7 @@ type PathConfig struct {
 	JwtPublicKeyPath  string
 	KnowledgeBasePath string
 	RecycleBinPath    string
+	TempDirPath       string
 }
 
 func Constructor() PathConfig {
@@ -42,6 +43,7 @@ func Constructor() PathConfig {
 	jwtPublicKeyPath := filepath.Join(baseProjectPath, "server/router/middleware/public.key")
 	knowledgeBasePath := filepath.Join(baseProjectPath, "data/local/knowledge_base")
 	recycleBinPath := filepath.Join(baseProjectPath, "data/local/recycle_bin")
+	tempFilePath := filepath.Join(baseProjectPath, "data/tmp")
 
 	return PathConfig{
 		BaseProjectPath:   baseProjectPath,
@@ -50,6 +52,7 @@ func Constructor() PathConfig {
 		JwtPrivateKeyPath: jwtPrivateKeyPath,
 		KnowledgeBasePath: knowledgeBasePath,
 		RecycleBinPath:    recycleBinPath,
+		TempDirPath:       tempFilePath,
 	}
 }
 

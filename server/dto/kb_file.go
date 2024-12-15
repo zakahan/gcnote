@@ -21,7 +21,7 @@ type KBFileRenameRequest struct {
 
 // 都用form标签
 type KBFileAddRequest struct {
-	IndexName  string                `form:"index_name" binding:"required"`
-	KBFileName string                `form:"kb_file_name" binding:"required"`
-	File       *multipart.FileHeader `form:"file" binding:"required"`
+	IndexName string `form:"index_name" binding:"required"`
+	//KBFileName string                `form:"kb_file_name" binding:"required"`
+	File *multipart.FileHeader `form:"file" binding:"required"`
 }
