@@ -42,9 +42,10 @@ func InitRouter() *gin.Engine {
 	group2.GET("/show_all", index_apis.ShowIndexes)
 
 	// 知识库文件创建
-	group3 := route.Group("kb_file").Use(middleware.VerifyJWT())
-	group3.POST("/create", kb_apis.CreateKBFile)
-	group3.POST("/add", kb_apis.AddKBFile)
+	group2.POST("/create_file", kb_apis.CreateKBFile)
+	group2.POST("/add_file", kb_apis.AddKBFile)
+	group2.GET("/show_index_files", kb_apis.ShowIndexFiles)
+	group2.POST("/delete_file", kb_apis.DeleteKBFile)
 
 	// swagger
 	route.GET(

@@ -15,8 +15,8 @@ import (
 
 func TestAutoConvert(t *testing.T) {
 	path := filepath.Join(config.PathCfg.BaseProjectPath, "test/docs/23年统计公报-节选.docx")
-	tmpPath := filepath.Join(config.PathCfg.TempDirPath)
-	s, _, err := AutoConvert(path, tmpPath, "")
+	tmpPath := filepath.Join(config.PathCfg.TempDirPath, "test_convert")
+	s, _, err := AutoConvert(path, tmpPath, ".docx")
 	if err != nil {
 		fmt.Println(err)
 		return

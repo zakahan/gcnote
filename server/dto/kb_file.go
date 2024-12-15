@@ -10,7 +10,7 @@ import "mime/multipart"
 
 type KBFileRequest struct {
 	IndexName  string `json:"index_name" binding:"required"`
-	KBFileName string `json:"kb_file_nane" binding:"required"`
+	KBFileName string `json:"kb_file_name" binding:"required"`
 }
 
 type KBFileRenameRequest struct {
@@ -24,4 +24,8 @@ type KBFileAddRequest struct {
 	IndexName string `form:"index_name" binding:"required"`
 	//KBFileName string                `form:"kb_file_name" binding:"required"`
 	File *multipart.FileHeader `form:"file" binding:"required"`
+}
+
+type KBFileShowRequest struct {
+	IndexName string `json:"index_name" binding:"required"`
 }

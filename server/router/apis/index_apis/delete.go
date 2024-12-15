@@ -77,11 +77,11 @@ func DeleteIndex(ctx *gin.Context) {
 	// 开始事务
 	tx = config.DB.Begin()
 	// 删除
-	tx = tx.Model(&indexInfo).Where(
+	err = tx.Model(&indexInfo).Where(
 		"index_id = ?",
 		indexId,
-	).Delete(&indexInfo)
-	if tx.Error != nil {
+	).Delete(&indexInfo).Error
+	if err != nil {
 		zap.S().Errorf("Delete index id :%v err:%v", indexId, tx.Error)
 		tx.Rollback()
 		ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))

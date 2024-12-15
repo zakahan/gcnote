@@ -72,9 +72,9 @@ func init() {
 	message[IndexNotExistErrCode] = "当前知识库不存在"
 	message[IndexNameErrCode] = "知识库名称不允许出现`?,\"/\\*<>|`中的任何一个符号"
 	// 403xx 文件错误
-	message[KBFileNameErrCode] = "文件名称不允许出现`?,\"/\\*<>|`中的任何一个符号"
-	message[KBFileExistErrCode] = "当前知识库已经存在"
-	message[KBFileNotExistErrCode] = "当前知识库不存在"
+	message[KBFileNameErrCode] = "文档名称不允许出现`?,\"/\\*<>|`中的任何一个符号"
+	message[KBFileExistErrCode] = "当前知文档已经存在"
+	message[KBFileNotExistErrCode] = "当前文档不存在"
 	message[KBFileAddFileErrCode] = "当前文件导入时发生错误"
 	// 5xxxx错误message
 	message[InternalErrCode] = "系统内部发生错误"

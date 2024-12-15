@@ -25,9 +25,9 @@ import (
 // @Accept       json
 // @Produce      json
 // @Success		 200	{object} dto.BaseResponse "成功响应，data返回用户信息"
-// @Failure		 200	{object} dto.BaseResponse "参数错误(code:40000)"
+// @Failure		 400	{object} dto.BaseResponse "参数错误(code:40000)"
 // @Failure		 401	{object} dto.BaseResponse "用户验证错误(code:40101)"
-// @Failure      50	{object} dto.BaseResponse "服务器内部错误(code:50000)"
+// @Failure      500	{object} dto.BaseResponse "服务器内部错误(code:50000)"
 // @Router		 /user/info [get]
 func Info(ctx *gin.Context) {
 	claims, exists := ctx.Get("claims")

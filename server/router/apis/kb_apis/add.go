@@ -24,6 +24,19 @@ import (
 	"strings"
 )
 
+// AddKBFile
+// @Summary		导入文件
+// @Description	 将文件导入对应的知识库
+// @ID			 add_kb_file
+// @Tags		 index
+// @Accept       json
+// @Produce      json
+// @Success		 200	{object} dto.BaseResponse "成功"
+// @Failure		 400	{object} dto.BaseResponse "KBFileName无效等参数问题(40300)"
+// @Failure		 401	{object} dto.BaseResponse "未授权，用户未登录(40101)"
+// @Failure		 409	{object} dto.BaseResponse "知识库不存在（40201）"
+// @Failure      500	{object} dto.BaseResponse "服务器内部错误(code:50000)"
+// @Router		 /index/add_file [post]
 func AddKBFile(ctx *gin.Context) {
 	var req dto.KBFileAddRequest
 	if err := ctx.ShouldBind(&req); err != nil {
@@ -69,9 +82,10 @@ func AddKBFile(ctx *gin.Context) {
 	}(file)
 	// 保存到本地tmp目录里面先
 	tmpDirPath := config.PathCfg.TempDirPath
-	tmpFilePath := filepath.Join(tmpDirPath, wrench.IdGenerator())
+	tmpFileDirPath := filepath.Join(tmpDirPath, wrench.IdGenerator())
+	tmpFilePath := filepath.Join(tmpFileDirPath, fileName)
 	// 保存到这里
-	dst := filepath.Join(tmpFilePath, fileName)
+	dst := filepath.Join(tmpFileDirPath, fileName)
 	err = ctx.SaveUploadedFile(req.File, dst)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.KBFileAddFileErrCode))
@@ -100,7 +114,8 @@ func AddKBFile(ctx *gin.Context) {
 	}
 	// 检查是否存在同名的文件（kbFileId）
 	var kbFile = model.KBFile{}
-	tx = config.DB.Where("kb_file_name = ?", KBFileNew.KBFileName).First(&kbFile)
+	tx = config.DB.Model(&KBFileNew).Where("kb_file_name = ? AND index_id = ?",
+		KBFileNew.KBFileName, KBFileNew.IndexId).First(&kbFile)
 	if tx.Error != nil && !errors.Is(tx.Error, gorm.ErrRecordNotFound) {
 		zap.S().Debugf("kb_file_name: %s is exist", KBFileNew.KBFileName)
 		ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
