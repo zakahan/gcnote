@@ -46,6 +46,10 @@ const (
 	KBFileExistErrCode    Code = 40301
 	KBFileNotExistErrCode Code = 40302
 	KBFileAddFileErrCode  Code = 40303
+
+	// 回收站业务错误码 04
+	RecycleFileNameErrCode     Code = 40400
+	RecycleFileNotExistErrCode Code = 40401
 )
 
 // 系统错误 5xxxx
@@ -76,6 +80,8 @@ func init() {
 	message[KBFileExistErrCode] = "当前知文档已经存在"
 	message[KBFileNotExistErrCode] = "当前文档不存在"
 	message[KBFileAddFileErrCode] = "当前文件导入时发生错误"
+	// 404xx 回收站错误
+
 	// 5xxxx错误message
 	message[InternalErrCode] = "系统内部发生错误"
 

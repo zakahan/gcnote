@@ -10,6 +10,7 @@ import (
 	_ "gcnote/docs"
 	"gcnote/server/router/apis/index_apis"
 	"gcnote/server/router/apis/kb_apis"
+	"gcnote/server/router/apis/recycle_apis"
 	"gcnote/server/router/apis/user_apis"
 	"gcnote/server/router/middleware"
 	"github.com/gin-contrib/cors"
@@ -48,6 +49,10 @@ func InitRouter() *gin.Engine {
 	group2.POST("/recycle_file", kb_apis.RecycleKBFile)
 	group2.POST("/rename_file", kb_apis.RenameKBFile)
 
+	// 回收站操作
+	group3 := route.Group("recycle").Use(middleware.VerifyJWT())
+	group3.POST("/delete_file", recycle_apis.DeleteRecycleFile) // 接口还没验证，明天弄把，不想写了
+	group3.POST("/show_files", recycle_apis.ShowRecycleFiles)
 	// swagger
 	route.GET(
 		"/swagger/*any",

@@ -22,6 +22,7 @@ import (
 )
 
 // RecycleKBFile
+// [rewrite]需要重写
 // @Summary 删除知识库里的文件（fixme:新写一个吧，写错了，应该是收到回收站的，这个留给回收站了）
 // @Description 删除知识库内部的文件(MYSQL + 文件系统已完成 + redis不管了)
 // @ID			recycle-kb-file

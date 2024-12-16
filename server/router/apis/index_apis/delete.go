@@ -19,6 +19,7 @@ import (
 )
 
 // DeleteIndex
+// [rewrite]需要重写
 // @Summary 删除知识库
 // @Description 删除知识库(MYSQL + 文件系统已完成 + 更新redis)
 // @ID			delete-index

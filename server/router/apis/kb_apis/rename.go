@@ -21,6 +21,7 @@ import (
 )
 
 // RenameKBFile
+// [rewrite]需要重写
 // @Summary 重命名文件
 // @Description 重命名文件(
 // @ID			rename-kb-file

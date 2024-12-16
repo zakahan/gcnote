@@ -20,6 +20,7 @@ import (
 )
 
 // RenameIndex
+// [rewrite]需要重写
 // @Summary 知识库重命名
 // @Description 重命名知识库(
 // @ID			rename-index
