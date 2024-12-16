@@ -32,9 +32,11 @@ import (
 // @Failure		401			{object}	dto.BaseResponse	"Token错误(code:40101)"
 // @Failure		404			{object}	dto.BaseResponse	"原索引记录不存在(code:40201)"
 // @Failure		500			{object}	dto.BaseResponse	"服务器内部错误(code:50000)"
-// @Router 		/index/rename [post]
+// @Router 		/index/rename_index [post]
 func RenameIndex(ctx *gin.Context) {
 	var req dto.IndexRenameRequest
+	zap.S().Debugf("req params : %v", req)
+
 	err := ctx.ShouldBindJSON(&req)
 	if err != nil {
 		zap.S().Debugf("mark 1")
@@ -68,8 +70,9 @@ func RenameIndex(ctx *gin.Context) {
 	tx := config.DB.Model(&indexModel).Where(
 		"index_name = ? AND user_id = ?",
 		req.SourceIndexName, currentUserId,
-	).Update("index_name = ?", req.SourceIndexName)
-	err = tx.First(&indexModel).Error
+	).Update("index_name", req.DestIndexName)
+
+	err = tx.Error
 	if tx.Error != nil {
 		if errors.Is(tx.Error, gorm.ErrRecordNotFound) {
 			zap.S().Errorf(
@@ -79,11 +82,13 @@ func RenameIndex(ctx *gin.Context) {
 				http.StatusNotFound,
 				dto.FailWithMessage(dto.IndexNotExistErrCode, "try to rename the index but record note found."),
 			)
+			return
 		} else {
 			zap.S().Errorf(
 				"Unexcept Error: User with user_id %v source_index_name %v , ",
 				currentUserId, req.SourceIndexName)
 			ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
+			return
 		}
 	}
 	ctx.JSON(http.StatusOK, dto.Success())

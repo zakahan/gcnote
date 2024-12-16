@@ -31,7 +31,7 @@ import (
 // @Failure		401			{object}	dto.BaseResponse	"Token错误(code:40101)"
 // @Failure		404			{object}	dto.BaseResponse	"该知识库不存在(code:40201)"
 // @Failure		500			{object}	dto.BaseResponse	"服务器内部错误(code:50000)"
-// @Router 		/index/delete [post]
+// @Router 		/index/delete_index [post]
 func DeleteIndex(ctx *gin.Context) {
 	var req dto.IndexCRUDRequest
 	err := ctx.ShouldBindJSON(&req)

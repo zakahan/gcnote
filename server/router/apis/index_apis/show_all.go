@@ -28,7 +28,7 @@ import (
 // @Failure		400			{object}	dto.BaseResponse	"参数错误(code:40000)"
 // @Failure		401			{object}	dto.BaseResponse	"Token错误(code:40101)"
 // @Failure		500			{object}	dto.BaseResponse	"服务器内部错误(code:50000)"
-// @Router 		/index/show_all [get]
+// @Router 		/index/show_indexes [get]
 func ShowIndexes(ctx *gin.Context) {
 	claims, exists := ctx.Get("claims")
 	if !exists {

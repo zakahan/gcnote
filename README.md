@@ -40,10 +40,10 @@
 
 |         进展         | 接口说明           | 接口地址                     | 访问方式 |
 | :------------------: | ------------------ | ---------------------------- | -------- |
-| :white_large_square: | 新建文档           | /index/new_file     | POST     |
+| :white_check_mark: | 新建文档           | /index/create_file | POST     |
 | :white_large_square: | 读取文档           | /index/read_file    | POST     |
 | :white_large_square: | 更新文档           | /index/update_file  | POST     |
-| :white_large_square: | 导入文档           | /index/import_files | POST     |
+| :white_check_mark: | 导入文档           | /index/add_file | POST     |
 | :white_large_square: | 重命名文档         | /index/rename_file  | POST     |
 | :white_large_square: | 删除文档到回收站   | /index/delete_files | POST     |
 | :white_large_square: | 搜索文档(按文件名) | /index/search_file  | POST     |

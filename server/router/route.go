@@ -36,10 +36,10 @@ func InitRouter() *gin.Engine {
 
 	// 知识库创建等
 	group2 := route.Group("index").Use(middleware.VerifyJWT())
-	group2.POST("/create", index_apis.CreateIndex)
-	group2.POST("/delete", index_apis.DeleteIndex)
-	group2.POST("/rename", index_apis.RenameIndex)
-	group2.GET("/show_all", index_apis.ShowIndexes)
+	group2.POST("/create_index", index_apis.CreateIndex)
+	group2.POST("/delete_index", index_apis.DeleteIndex)
+	group2.POST("/rename_index", index_apis.RenameIndex)
+	group2.GET("/show_indexes", index_apis.ShowIndexes)
 
 	// 知识库文件创建
 	group2.POST("/create_file", kb_apis.CreateKBFile)

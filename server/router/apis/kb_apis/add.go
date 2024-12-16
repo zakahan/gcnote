@@ -40,8 +40,9 @@ import (
 func AddKBFile(ctx *gin.Context) {
 	var req dto.KBFileAddRequest
 	if err := ctx.ShouldBind(&req); err != nil {
+
 		ctx.JSON(http.StatusBadRequest, dto.Fail(dto.ParamsErrCode))
-		//zap.S().Debugf("")
+		zap.S().Debugf("mark 1: params: %v", req)
 		return
 	}
 	// 获取userId
@@ -163,6 +164,13 @@ func AddKBFile(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
 		return
 	}
+
+	// 删除临时文件夹 tmpFileDirPath
+	err = wrench.RemoveContents(tmpFileDirPath)
+	if err != nil {
+		zap.S().Errorf("Failed to remove temp dir, err: %v", err)
+	}
+
 	// 提交事务
 	err = tx.Commit().Error
 	if err != nil {

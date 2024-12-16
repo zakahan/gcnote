@@ -34,7 +34,7 @@ import (
 // @Failure		401			{object}	dto.BaseResponse	"Token错误(code:40101)"
 // @Failure		409			{object}	dto.BaseResponse	"该知识库已存在(code:40200)"
 // @Failure		500			{object}	dto.BaseResponse	"服务器内部错误(code:50000)"
-// @Router 		/index/create [post]
+// @Router 		/index/create_index [post]
 func CreateIndex(ctx *gin.Context) {
 	var req dto.IndexCRUDRequest
 	err := ctx.ShouldBindJSON(&req)

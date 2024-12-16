@@ -17,7 +17,6 @@ import (
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 	"net/http"
-	"os"
 	"path/filepath"
 )
 
@@ -126,7 +125,7 @@ func DeleteKBFile(ctx *gin.Context) {
 	// 从文件系统删除
 	kbPath := config.PathCfg.KnowledgeBasePath
 	indexPath := filepath.Join(kbPath, kbFile.KBFileId)
-	err = removeContents(indexPath)
+	err = wrench.RemoveContents(indexPath)
 	if err != nil {
 		zap.S().Errorf("Delete kb_file name :%v err:%v", req.KBFileName, tx.Error)
 		tx.Rollback()
@@ -143,14 +142,4 @@ func DeleteKBFile(ctx *gin.Context) {
 	}
 	zap.S().Infof("Delete kb_file name %v , user id : %v done.", req.IndexName, currentUserId)
 	ctx.JSON(http.StatusOK, dto.Success())
-}
-
-// removeContents 清除目录里的东西
-func removeContents(dir string) error {
-	// 删除目录及其所有内容
-	err := os.RemoveAll(dir)
-	if err != nil {
-		return err
-	}
-	return nil
 }
