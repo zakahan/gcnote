@@ -45,7 +45,8 @@ func InitRouter() *gin.Engine {
 	group2.POST("/create_file", kb_apis.CreateKBFile)
 	group2.POST("/add_file", kb_apis.AddKBFile)
 	group2.GET("/show_index_files", kb_apis.ShowIndexFiles)
-	group2.POST("/delete_file", kb_apis.DeleteKBFile)
+	group2.POST("/recycle_file", kb_apis.RecycleKBFile)
+	group2.POST("/rename_file", kb_apis.RenameKBFile)
 
 	// swagger
 	route.GET(

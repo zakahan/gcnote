@@ -37,11 +37,12 @@ import (
 // @Tags 		 index
 // @Accept       json
 // @Produce      json
-// @Success		 200	{object} dto.BaseResponse "成功"
-// @Failure		 400	{object} dto.BaseResponse "KBFileName无效等参数问题(40300)"
-// @Failure		 401	{object} dto.BaseResponse "未授权，用户未登录(40101)"
-// @Failure		 409	{object} dto.BaseResponse "知识库不存在（40201）"
-// @Failure      500	{object} dto.BaseResponse "服务器内部错误(code:50000)"
+// @Param		request		body		dto.KBFileRequest true "文档请求体"
+// @Success		 200	{object} 		dto.BaseResponse "成功"
+// @Failure		 400	{object} 		dto.BaseResponse "KBFileName无效等参数问题(40300)"
+// @Failure		 401	{object} 		dto.BaseResponse "未授权，用户未登录(40101)"
+// @Failure		 409	{object} 		dto.BaseResponse "知识库不存在（40201）"
+// @Failure      500	{object} 		dto.BaseResponse "服务器内部错误(code:50000)"
 // @Router		 /index/create_file [post]
 func CreateKBFile(ctx *gin.Context) {
 	var req dto.KBFileRequest
@@ -90,6 +91,7 @@ func CreateKBFile(ctx *gin.Context) {
 	if tx.RowsAffected == 0 {
 		ctx.JSON(http.StatusConflict, dto.FailWithMessage(dto.IndexNotExistErrCode,
 			"知识库"+req.IndexName+"不存在"))
+		return
 	}
 
 	if tx.Error != nil {

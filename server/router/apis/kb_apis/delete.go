@@ -21,19 +21,7 @@ import (
 )
 
 // DeleteKBFile
-// @Summary 删除知识库里的文件
-// @Description 删除知识库内部的文件(MYSQL + 文件系统已完成 + redis不管了)
-// @ID			delete-kb-file
-// @Tags		index
-// @Accept		json
-// @Produce		json
-// @Param		request		body		dto.IndexCRUDRequest true "登录请求体"
-// @Success 	200			{object} 	dto.BaseResponse	"成功响应，返回success"
-// @Failure		400			{object}	dto.BaseResponse	"参数错误(code:40000)"
-// @Failure		401			{object}	dto.BaseResponse	"Token错误(code:40101)"
-// @Failure		404			{object}	dto.BaseResponse	"该知识库不存在(code:40201)"
-// @Failure		500			{object}	dto.BaseResponse	"服务器内部错误(code:50000)"
-// @Router 		/index/delete_file [post]
+// *
 func DeleteKBFile(ctx *gin.Context) {
 	var req dto.KBFileRequest
 	err := ctx.ShouldBindJSON(&req)

@@ -31,11 +31,12 @@ import (
 // @Tags		 index
 // @Accept       json
 // @Produce      json
-// @Success		 200	{object} dto.BaseResponse "成功"
-// @Failure		 400	{object} dto.BaseResponse "KBFileName无效等参数问题(40300)"
-// @Failure		 401	{object} dto.BaseResponse "未授权，用户未登录(40101)"
-// @Failure		 409	{object} dto.BaseResponse "知识库不存在（40201）"
-// @Failure      500	{object} dto.BaseResponse "服务器内部错误(code:50000)"
+// @Param		request		body		dto.KBFileAddRequest true "文档添加请求体"
+// @Success		 200	{object} 		dto.BaseResponse "成功"
+// @Failure		 400	{object} 		dto.BaseResponse "KBFileName无效等参数问题(40300)"
+// @Failure		 401	{object} 		dto.BaseResponse "未授权，用户未登录(40101)"
+// @Failure		 409	{object} 		dto.BaseResponse "知识库不存在（40201）"
+// @Failure      500	{object} 		dto.BaseResponse "服务器内部错误(code:50000)"
 // @Router		 /index/add_file [post]
 func AddKBFile(ctx *gin.Context) {
 	var req dto.KBFileAddRequest

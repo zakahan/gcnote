@@ -26,11 +26,11 @@
 
 |         进展         | 接口说明       | 接口地址                  | 访问方式 |
 | :------------------: | -------------- | ------------------------- | -------- |
-| :white_check_mark: | 创建知识库     | /index/create_index | POST     |
-| :white_large_square: | 删除知识库     | /index/delete_index | POST     |
+| :white_check_mark: | 创建知识库     | /index/create_index | POS      |
+|  :white_check_mark:  | 删除知识库     | /index/delete_index | POST     |
 | :white_large_square: | 知识库是否存在 | /index/search_index | GET      |
-| :white_large_square: | 展示知识库清单 | /index/show_indexs  | GET      |
-| :white_large_square: | 重命名知识库   | /index/rename_index | POST     |
+| :white_check_mark: | 展示知识库清单 | /index/show_indexs  | GET      |
+| :white_check_mark: | 重命名知识库   | /index/rename_index | POST     |
 
 
 
@@ -44,10 +44,10 @@
 | :white_large_square: | 读取文档           | /index/read_file    | POST     |
 | :white_large_square: | 更新文档           | /index/update_file  | POST     |
 | :white_check_mark: | 导入文档           | /index/add_file | POST     |
-| :white_large_square: | 重命名文档         | /index/rename_file  | POST     |
-| :white_large_square: | 删除文档到回收站   | /index/delete_files | POST     |
+| :white_check_mark: | 重命名文档         | /index/rename_file  | POST     |
+| :white_check_mark: | 删除文档到回收站   | /index/delete_files | POST     |
 | :white_large_square: | 搜索文档(按文件名) | /index/search_file  | POST     |
-| :white_large_square: | 展示知识库文档列表 | /index/show_files   | GET      |
+| :white_check_mark: | 展示知识库文档列表 | /index/show_files   | GET      |
 | :white_large_square: | 文档存在           | /index/file_exist   | GET      |
 | :white_large_square: | 文档共享           | /index/share_files  | POST     |
 
@@ -72,7 +72,7 @@
 
 回收站的话，好像只需要给kb_file加个标记-“是否位于回收站”，每次查询回收站的时候，呃，但是这样的话好像需要级联查询，有点费时间？我得研究一下。
 
-
+回收站单独一张表。
 
 ### 搜索与RAG
 

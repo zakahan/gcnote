@@ -15,8 +15,8 @@ type KBFileRequest struct {
 
 type KBFileRenameRequest struct {
 	IndexName      string `json:"index_name" binding:"required"`
-	SourceFileName string `json:"source_kb_file_nane" binding:"required"`
-	DestFileName   string `json:"dest_kb_file_nane" binding:"required"`
+	SourceFileName string `json:"source_kb_file_name" binding:"required"`
+	DestFileName   string `json:"dest_kb_file_name" binding:"required"`
 }
 
 // 都用form标签

@@ -66,6 +66,8 @@ func InitMysql() {
 	err = config.DB.AutoMigrate(&model.User{})
 	err = config.DB.AutoMigrate(&model.Index{})
 	err = config.DB.AutoMigrate(&model.KBFile{})
+	err = config.DB.AutoMigrate(&model.Recycle{})
+	err = config.DB.AutoMigrate(&model.Share{})
 	if err != nil {
 		zap.S().Panicf("初始化MySQL数据库失败 err:%v", err)
 	}
