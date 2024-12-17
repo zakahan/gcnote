@@ -8,24 +8,32 @@ package dto
 
 import "mime/multipart"
 
-type KBFileRequest struct {
-	IndexName  string `json:"index_name" binding:"required"`
+type KBFileCreateRequest struct {
 	KBFileName string `json:"kb_file_name" binding:"required"`
+	IndexId    string `json:"index_id" binding:"required"`
 }
 
 type KBFileRenameRequest struct {
-	IndexName      string `json:"index_name" binding:"required"`
-	SourceFileName string `json:"source_kb_file_name" binding:"required"`
-	DestFileName   string `json:"dest_kb_file_name" binding:"required"`
+	IndexId        string `json:"index_id" binding:"required"`          // 知识库索引ID
+	KBFileId       string `json:"kb_file_id" binding:"required"`        // 原文件ID
+	KBFileName     string `json:"kb_file_name" binding:"required"`      // 原文件名
+	DestKBFileName string `json:"dest_kb_file_name" binding:"required"` // 新文件名
+
 }
 
 // 都用form标签
 type KBFileAddRequest struct {
-	IndexName string `form:"index_name" binding:"required"`
+	IndexId string `form:"index_id" binding:"required"`
 	//KBFileName string                `form:"kb_file_name" binding:"required"`
 	File *multipart.FileHeader `form:"file" binding:"required"`
 }
 
 type KBFileShowRequest struct {
-	IndexName string `json:"index_name" binding:"required"`
+	IndexId string `json:"index_id" binding:"required"`
+}
+
+type KBFileUDRequest struct {
+	KBFileId   string `json:"kb_file_id" binding:"required"`
+	KBFileName string `json:"kb_file_name" binding:"required"`
+	IndexId    string `json:"index_id" binding:"required"`
 }

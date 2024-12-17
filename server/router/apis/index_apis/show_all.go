@@ -23,7 +23,6 @@ import (
 // @Tags		index
 // @Accept		json
 // @Produce		json
-// @Param		request		body		dto.IndexCRUDRequest true "登录请求体"
 // @Success 	200			{object} 	dto.BaseResponse	"成功响应，返回success"
 // @Failure		400			{object}	dto.BaseResponse	"参数错误(code:40000)"
 // @Failure		401			{object}	dto.BaseResponse	"Token错误(code:40101)"

@@ -7,14 +7,12 @@
 package kb_apis
 
 import (
-	"errors"
 	"gcnote/server/config"
 	"gcnote/server/dto"
 	"gcnote/server/model"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"go.uber.org/zap"
-	"gorm.io/gorm"
 	"net/http"
 )
 
@@ -55,32 +53,12 @@ func ShowIndexFiles(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, dto.Fail(dto.ParamsErrCode))
 		return
 	}
-	// 展示
 
-	// 从index表中查询index_id
-	indexModel := model.Index{}
-	tx := config.DB.Model(&indexModel).Where(
-		"user_id = ? AND index_name = ?",
-		currentUserId, req.IndexName,
-	).First(&indexModel)
-
-	if tx.Error != nil && !errors.Is(tx.Error, gorm.ErrRecordNotFound) {
-		zap.S().Errorf("Could not find the index %v, Err %v", req.IndexName, tx.Error)
-		ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
-		return
-	}
-	// 查看是否存在
-	if indexModel.ID == 0 {
-		ctx.JSON(http.StatusNotFound, dto.FailWithMessage(dto.RecordNotFoundErrCode, "用户账号不存在"))
-		return
-	}
-	// 查看
-	zap.S().Debugf("indexModel.IndexId: %v", indexModel.IndexId)
 	// 获取文件
 	kbFileModel := model.KBFile{}
-	tx = config.DB.Model(&kbFileModel).Where(
+	tx := config.DB.Model(&kbFileModel).Where(
 		"index_id = ?",
-		indexModel.IndexId,
+		req.IndexId,
 	)
 	// 输出
 	var kbFileList []model.KBFile

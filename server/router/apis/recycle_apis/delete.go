@@ -21,7 +21,19 @@ import (
 )
 
 // DeleteRecycleFile
-// *
+// @Summary      删除回收站中的文件
+// @Description  删除指定回收站中的文件，包括数据库记录和文件系统文件
+// @ID           delete-recycle-file
+// @Tags         recycle
+// @Accept       json
+// @Produce      json
+// @Param        request  body      dto.RecycleRequest true "回收站文件删除请求体"
+// @Success      200      {object}  dto.BaseResponse   "成功响应，返回success"
+// @Failure      400      {object}  dto.BaseResponse   "参数错误(code:40000)"
+// @Failure      401      {object}  dto.BaseResponse   "Token错误(code:40101)"
+// @Failure      404      {object}  dto.BaseResponse   "文件记录未找到(code:40201)"
+// @Failure      500      {object}  dto.BaseResponse   "服务器内部错误(code:50000)"
+// @Router       /recycle/delete_file [post]
 func DeleteRecycleFile(ctx *gin.Context) {
 	var req dto.RecycleRequest
 	err := ctx.ShouldBindJSON(&req)
@@ -51,8 +63,8 @@ func DeleteRecycleFile(ctx *gin.Context) {
 
 	// 开始删除操作
 	var recycleFile model.Recycle
-	tx := config.DB.Model(&recycleFile).Delete(
-		"kb_file_id", req.KBFileId)
+	tx := config.DB.Where("kb_file_id = ?", req.KBFileId).Delete(&recycleFile)
+
 	if tx.Error != nil {
 		if errors.Is(tx.Error, gorm.ErrRecordNotFound) {
 			zap.S().Errorf(

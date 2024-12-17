@@ -41,7 +41,6 @@ import (
 func AddKBFile(ctx *gin.Context) {
 	var req dto.KBFileAddRequest
 	if err := ctx.ShouldBind(&req); err != nil {
-
 		ctx.JSON(http.StatusBadRequest, dto.Fail(dto.ParamsErrCode))
 		zap.S().Debugf("mark 1: params: %v", req)
 		return
@@ -63,6 +62,28 @@ func AddKBFile(ctx *gin.Context) {
 		return
 	}
 	// ------------------------------------
+	// 查看知识库是否存在
+	// fixme 这里要改为redis
+	indexSearch := model.Index{}
+	tx := config.DB.Where("index_id = ? AND user_id = ?",
+		req.IndexId, currentUserId,
+	).First(&indexSearch)
+	if tx.Error != nil && !errors.Is(tx.Error, gorm.ErrRecordNotFound) {
+		zap.S().Errorf("Create index %v, err: %v", req.IndexId, tx.Error)
+		ctx.JSON(http.StatusOK, dto.Fail(dto.InternalErrCode))
+		return
+	}
+	if tx.Error != nil {
+		zap.S().Errorf("Failed to begin transaction, err:%v", tx.Error)
+		ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
+		return
+	}
+	if tx.RowsAffected == 0 {
+		ctx.JSON(http.StatusConflict, dto.FailWithMessage(dto.IndexNotExistErrCode,
+			"知识库"+req.IndexId+"不存在"))
+		return
+	}
+
 	// 正式开始文件处理
 	// 获取文件名和文件扩展名
 	fileName := req.File.Filename
@@ -94,25 +115,12 @@ func AddKBFile(ctx *gin.Context) {
 	}
 	// 导入没问题 那么我就后续处理了
 	// ------------------------------------
-	// 获取indexId
-	indexModel := model.Index{}
-	tx := config.DB.Model(&indexModel).Where(
-		"index_name = ? AND user_id = ?",
-		req.IndexName, currentUserId,
-	)
-	// 不需要再验证是否只有一条了，因为已经再create的时候验证过了
-	err = tx.First(&indexModel).Error
-	if err != nil {
-		zap.S().Errorf("failed to find index: %v", err)
-		ctx.JSON(http.StatusNotFound, dto.Fail(dto.IndexNotExistErrCode))
-		return
-	}
 
 	// 开始sql操作
 	KBFileNew := model.KBFile{
 		KBFileId:   wrench.IdGenerator(),
 		KBFileName: strings.TrimSuffix(fileName, fileExt),
-		IndexId:    indexModel.IndexId,
+		IndexId:    req.IndexId,
 	}
 	// 检查是否存在同名的文件（kbFileId）
 	var kbFile = model.KBFile{}

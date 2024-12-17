@@ -63,12 +63,13 @@
 
 回收站就是一个单独的知识库，这里每次删除操作都是真的彻底的删除，我应该新建一个表的
 
-|         进展         | 接口说明       | 接口地址                   | 访问方式 |
-| :------------------: | -------------- | -------------------------- | -------- |
-| :white_large_square: | 展示回收站内容 | /recycle_bin/show_files    | GET      |
-| :white_large_square: | 彻底删除文档   | /recycle_bin/delete_files  | POST     |
-| :white_large_square: | 恢复文档       | /recycle_bin/recycle_files | POST     |
-| :white_large_square: | 定期清理       | 这功能咋实现？             |          |
+|         进展         | 接口说明       | 接口地址               | 访问方式 |
+| :------------------: | -------------- | ---------------------- | -------- |
+|  :white_check_mark:  | 展示回收站内容 | /recycle/show_files    | GET      |
+|  :white_check_mark:  | 彻底删除文档   | /recycle/delete_files  | POST     |
+| :white_large_square: | 恢复文档       | /recycle/restore_files | POST     |
+|  :white_check_mark:  | 定期清理       | /recycle/clearup       | POST     |
+|  :white_check_mark:  | 清空回收站     | /recycle/clear         | POST     |
 
 回收站的话，好像只需要给kb_file加个标记-“是否位于回收站”，每次查询回收站的时候，呃，但是这样的话好像需要级联查询，有点费时间？我得研究一下。
 

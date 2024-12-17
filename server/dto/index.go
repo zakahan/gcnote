@@ -6,11 +6,16 @@
 
 package dto
 
-type IndexCRUDRequest struct {
+type IndexCreateRequest struct {
 	IndexName string `json:"index_name" binding:"required"`
 }
 
 type IndexRenameRequest struct {
-	SourceIndexName string `json:"source_index_name" binding:"required"`
-	DestIndexName   string `json:"dest_index_name" binding:"required"`
+	IndexId string `json:"index_id" binding:"required"`
+	//SourceIndexName string `json:"source_index_name" binding:"required"`
+	DestIndexName string `json:"dest_index_name" binding:"required"`
+}
+
+type IndexRequest struct {
+	IndexId string `json:"index_id" binding:"required"`
 }

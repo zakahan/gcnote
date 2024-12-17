@@ -28,7 +28,7 @@ import (
 // @Tags		index
 // @Accept		json
 // @Produce		json
-// @Param		request		body		dto.IndexCRUDRequest true "登录请求体"
+// @Param		request		body		dto.IndexCreateRequest true "登录请求体"
 // @Success 	200			{object} 	dto.BaseResponse	"成功响应，返回success"
 // @Failure		400			{object}	dto.BaseResponse	"参数错误(code:40000)"
 // @Failure		401			{object}	dto.BaseResponse	"Token错误(code:40101)"
@@ -36,7 +36,7 @@ import (
 // @Failure		500			{object}	dto.BaseResponse	"服务器内部错误(code:50000)"
 // @Router 		/index/create_index [post]
 func CreateIndex(ctx *gin.Context) {
-	var req dto.IndexCRUDRequest
+	var req dto.IndexCreateRequest
 	err := ctx.ShouldBindJSON(&req)
 	if err != nil {
 		zap.S().Debugf("mark 1")

@@ -37,7 +37,7 @@ import (
 // @Tags 		 index
 // @Accept       json
 // @Produce      json
-// @Param		request		body		dto.KBFileRequest true "文档请求体"
+// @Param		request		body		dto.KBFileCreateRequest true "文档请求体"
 // @Success		 200	{object} 		dto.BaseResponse "成功"
 // @Failure		 400	{object} 		dto.BaseResponse "KBFileName无效等参数问题(40300)"
 // @Failure		 401	{object} 		dto.BaseResponse "未授权，用户未登录(40101)"
@@ -45,7 +45,7 @@ import (
 // @Failure      500	{object} 		dto.BaseResponse "服务器内部错误(code:50000)"
 // @Router		 /index/create_file [post]
 func CreateKBFile(ctx *gin.Context) {
-	var req dto.KBFileRequest
+	var req dto.KBFileCreateRequest
 	err := ctx.ShouldBindJSON(&req)
 	if err != nil {
 		zap.S().Debugf("mark 1")
@@ -80,29 +80,29 @@ func CreateKBFile(ctx *gin.Context) {
 	// 查看知识库是否存在
 	// fixme 这里要改为redis
 	indexSearch := model.Index{}
-	tx := config.DB.Where("index_name = ? AND user_id = ?",
-		req.IndexName, currentUserId,
+	tx := config.DB.Where("index_id = ? AND user_id = ?",
+		req.IndexId, currentUserId,
 	).First(&indexSearch)
 	if tx.Error != nil && !errors.Is(tx.Error, gorm.ErrRecordNotFound) {
-		zap.S().Errorf("Create index %v, err: %v", req.IndexName, tx.Error)
+		zap.S().Errorf("Create index %v, err: %v", req.IndexId, tx.Error)
 		ctx.JSON(http.StatusOK, dto.Fail(dto.InternalErrCode))
 		return
 	}
-	if tx.RowsAffected == 0 {
-		ctx.JSON(http.StatusConflict, dto.FailWithMessage(dto.IndexNotExistErrCode,
-			"知识库"+req.IndexName+"不存在"))
-		return
-	}
-
 	if tx.Error != nil {
 		zap.S().Errorf("Failed to begin transaction, err:%v", tx.Error)
 		ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
 		return
 	}
+	if tx.RowsAffected == 0 {
+		ctx.JSON(http.StatusConflict, dto.FailWithMessage(dto.IndexNotExistErrCode,
+			"知识库"+req.IndexId+"不存在"))
+		return
+	}
+
 	// 创建一个KBFile
 	KBFileId := wrench.IdGenerator()
 	KBFileNew := model.KBFile{
-		IndexId:    indexSearch.IndexId,
+		IndexId:    req.IndexId,
 		KBFileId:   KBFileId,
 		KBFileName: req.KBFileName,
 	}

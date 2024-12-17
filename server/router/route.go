@@ -51,8 +51,11 @@ func InitRouter() *gin.Engine {
 
 	// 回收站操作
 	group3 := route.Group("recycle").Use(middleware.VerifyJWT())
-	group3.POST("/delete_file", recycle_apis.DeleteRecycleFile) // 接口还没验证，明天弄把，不想写了
-	group3.POST("/show_files", recycle_apis.ShowRecycleFiles)
+	group3.POST("/delete_file", recycle_apis.DeleteRecycleFile)
+	group3.GET("/show_files", recycle_apis.ShowRecycleFiles)
+	group3.POST("/clear", recycle_apis.ClearUserRecycleBin)
+	group3.POST("/clearup", recycle_apis.CleanupOldRecycleFiles)
+	group3.POST("/restore", recycle_apis.RestoreRecycleFile)
 	// swagger
 	route.GET(
 		"/swagger/*any",

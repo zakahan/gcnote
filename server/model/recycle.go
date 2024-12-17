@@ -6,7 +6,11 @@
 
 package model
 
+import "gorm.io/gorm"
+
 type Recycle struct {
+	gorm.Model
+	UserId        string
 	SourceIndexId string
 	KBFileId      string
 	KBFileName    string

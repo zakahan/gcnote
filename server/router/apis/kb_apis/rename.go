@@ -11,6 +11,7 @@ import (
 	"gcnote/server/config"
 	"gcnote/server/dto"
 	"gcnote/server/model"
+	"gcnote/server/router/wrench"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"go.uber.org/zap"
@@ -36,11 +37,22 @@ import (
 // @Router 		/index/rename_file [post]
 func RenameKBFile(ctx *gin.Context) {
 	var req dto.KBFileRenameRequest
-	err := ctx.ShouldBindJSON(&req)
-	if err != nil {
+	zap.S().Debugf("Rename request params : %v", req)
+
+	// 参数绑定
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		zap.S().Debugf("Invalid parameters: %+v", req)
 		ctx.JSON(http.StatusBadRequest, dto.Fail(dto.ParamsErrCode))
 		return
 	}
+
+	// 验证新文件名是否合法
+	if !wrench.ValidateKBName(req.DestKBFileName) {
+		zap.S().Debugf("Invalid KB file name: %v", req.DestKBFileName)
+		ctx.JSON(http.StatusBadRequest, dto.FailWithMessage(dto.KBFileNameErrCode, "dest KB file name not allowed."))
+		return
+	}
+
 	// 获取用户信息
 	claims, exists := ctx.Get("claims")
 	if !exists {
@@ -55,39 +67,36 @@ func RenameKBFile(ctx *gin.Context) {
 		ctx.JSON(http.StatusUnauthorized, dto.Fail(dto.ParamsErrCode))
 		return
 	}
-
-	// 然后查找index表
-	// 查找 Index 表中的 IndexId
-	var index model.Index
-	if err = config.DB.Where("user_id = ? AND index_name = ?", currentUserId, req.IndexName).First(&index).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			ctx.JSON(http.StatusNotFound, gin.H{"error": "Index not found"})
-		} else {
-			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		}
-		return
+	kbFile := model.KBFile{
+		KBFileName: req.KBFileName,
+		KBFileId:   req.KBFileId,
+		IndexId:    req.IndexId,
 	}
-	var kbFile model.KBFile
-	err = config.DB.Where("index_id = ? AND kb_file_name = ?", index.IndexId, req.SourceFileName).First(&kbFile).Error
-	if err != nil {
-		zap.S().Errorf("Failed to find kb file, err: %v", err)
-		ctx.JSON(http.StatusOK, dto.FailWithMessage(dto.KBFileNotExistErrCode, "该文件不存在"))
+
+	// 检查原来的系统中是否存在这个名字 不允许重命名
+	var existKBFile model.KBFile
+	tx := config.DB.Model(&existKBFile).Where("kb_file_name = ? AND index_id = ? ",
+		kbFile.KBFileName, kbFile.IndexId).First(&existKBFile)
+	if tx.Error != nil && !errors.Is(tx.Error, gorm.ErrRecordNotFound) {
+		zap.S().Debugf("kb_file_name: %s is exist", kbFile.KBFileName)
+		ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
 		return
 	}
 
 	// 文件名修改
 	// os.Rename(oldPath, newPath)
 	documentPath := filepath.Join(config.PathCfg.KnowledgeBasePath, kbFile.IndexId, kbFile.KBFileId, kbFile.KBFileName+".md")
-	renameDocumentPath := filepath.Join(config.PathCfg.KnowledgeBasePath, kbFile.IndexId, kbFile.KBFileId, req.DestFileName+".md")
+	renameDocumentPath := filepath.Join(config.PathCfg.KnowledgeBasePath, kbFile.IndexId, kbFile.KBFileId, req.DestKBFileName+".md")
 	zap.S().Debugf("修改文件，原始路径 %v, 新路径 %v", documentPath, renameDocumentPath)
-	err = os.Rename(documentPath, renameDocumentPath)
+	err := os.Rename(documentPath, renameDocumentPath)
 	if err != nil {
 		zap.S().Errorf("Failed to rename file, err: %v", err)
 		ctx.JSON(http.StatusInternalServerError, dto.FailWithMessage(dto.InternalErrCode, "文件系统重命名文件失败"))
 		return
 	}
+
 	// 修改SQL
-	err = config.DB.Model(&kbFile).Update("kb_file_name", req.DestFileName).Error
+	err = config.DB.Model(&kbFile).Where("kb_file_id = ?", req.KBFileId).Update("kb_file_name", req.DestKBFileName).Error
 	if err != nil {
 		zap.S().Errorf("Failed to update kb file, err: %v", err)
 		ctx.JSON(http.StatusOK, dto.FailWithMessage(dto.InternalErrCode, "更新文件名失败"))
