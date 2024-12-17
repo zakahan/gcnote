@@ -6,7 +6,17 @@
 
 
 
-## 目前进展
+## 目前进展 - 
+
+2024 / 12 / 17
+
+1. 后端简单curd的基本上完成了，判断文件存在性之类的好像也不是很必要，搁置争议
+2. read_file之类的和前端技术选型有关，我暂时不好判断怎么写
+3. 删除用户应该级联删除Index表和KBFile表，但是这个就先这样了，就当（保留用户数据）
+4. 接下来要推进ES方面的处理了。（晚上做or明天做）
+5. 现在可以说，我完成了差不多1/4的工作量了。剩下的里面，1/4是ES搜索+RAG功能，1/4是前端基础操作，1/4 共享文档操作
+
+
 
 ### 用户接口
 
@@ -63,17 +73,19 @@
 
 回收站就是一个单独的知识库，这里每次删除操作都是真的彻底的删除，我应该新建一个表的
 
-|         进展         | 接口说明       | 接口地址               | 访问方式 |
-| :------------------: | -------------- | ---------------------- | -------- |
-|  :white_check_mark:  | 展示回收站内容 | /recycle/show_files    | GET      |
-|  :white_check_mark:  | 彻底删除文档   | /recycle/delete_files  | POST     |
-| :white_large_square: | 恢复文档       | /recycle/restore_files | POST     |
-|  :white_check_mark:  | 定期清理       | /recycle/clearup       | POST     |
-|  :white_check_mark:  | 清空回收站     | /recycle/clear         | POST     |
+|        进展        | 接口说明       | 接口地址               | 访问方式 |
+| :----------------: | -------------- | ---------------------- | -------- |
+| :white_check_mark: | 展示回收站内容 | /recycle/show_files    | GET      |
+| :white_check_mark: | 彻底删除文档   | /recycle/delete_files  | POST     |
+| :white_check_mark: | 恢复文档       | /recycle/restore_files | POST     |
+| :white_check_mark: | 定期清理       | /recycle/clearup       | POST     |
+| :white_check_mark: | 清空回收站     | /recycle/clear         | POST     |
 
-回收站的话，好像只需要给kb_file加个标记-“是否位于回收站”，每次查询回收站的时候，呃，但是这样的话好像需要级联查询，有点费时间？我得研究一下。
 
-回收站单独一张表。
+
+回收站单独一张表。设置了一个接口clearup，清理更新时间大于30的文件，这个接口倒是每天24点被前端调用一次。
+
+
 
 ### 搜索与RAG
 
