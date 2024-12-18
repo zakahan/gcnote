@@ -16,6 +16,7 @@ func main() {
 	server.InitMysql()
 	server.InitRedis()
 	server.InitLocalCache()
+	server.InitElasticSearch()
 	zap.S().Infof("\n")
 	zap.S().Infof("-------------------------------------------------")
 	zap.S().Infof("-------------------------------------------------")

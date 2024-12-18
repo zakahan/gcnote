@@ -37,3 +37,9 @@ type KBFileUDRequest struct {
 	KBFileName string `json:"kb_file_name" binding:"required"`
 	IndexId    string `json:"index_id" binding:"required"`
 }
+
+type KBFileSearchRequest struct {
+	KBFileName    string `json:"kb_file_name" binding:"required"`     // 文件名，可选
+	IndexId       string `json:"index_id" binding:"required"`         // 索引ID，必填
+	IsFuzzySearch bool   `json:"is_fuzzy_search" binding:"omitempty"` // 是否模糊搜索，可选，默认false
+}

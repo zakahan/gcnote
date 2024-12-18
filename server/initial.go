@@ -12,6 +12,7 @@ import (
 	"gcnote/server/config"
 	"gcnote/server/model"
 	"github.com/allegro/bigcache/v3"
+	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/redis/go-redis/v9"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
@@ -148,4 +149,42 @@ func getLogWriterInfo() zapcore.WriteSyncer {
 	}
 
 	return zapcore.AddSync(ws)
+}
+
+func InitElasticSearch() {
+	var certPath string
+	var esCfg elasticsearch.Config
+	var err error
+	var elasticClient *elasticsearch.Client
+	// 如果使用证书
+	if config.ServerCfg.ElasticConf.UseCert {
+		certPath = config.ServerCfg.ElasticConf.CertPath
+		cert, _ := os.ReadFile(certPath)
+		esCfg = elasticsearch.Config{
+			Addresses: []string{config.ServerCfg.ElasticConf.Address},
+			Username:  config.ServerCfg.ElasticConf.Username,
+			Password:  config.ServerCfg.ElasticConf.Password,
+			CACert:    cert,
+		}
+	} else { // 如果不使用证书
+		esCfg = elasticsearch.Config{
+			Addresses: []string{config.ServerCfg.ElasticConf.Address},
+			Username:  config.ServerCfg.ElasticConf.Username,
+			Password:  config.ServerCfg.ElasticConf.Password,
+		}
+	}
+
+	elasticClient, err = elasticsearch.NewClient(esCfg)
+	if err != nil {
+		zap.S().Panicf("初始化ElasticSearch失败 err:%+v", err)
+	}
+	report, err := elasticClient.HealthReport()
+	if err != nil {
+		zap.S().Panicf("ElasticSearch健康状态监控报错 err:%+v", err)
+	} else {
+		zap.S().Infof("ElasticSearch Health Report %+v", report)
+	}
+
+	config.ElasticClient = elasticClient
+
 }

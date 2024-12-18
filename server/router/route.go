@@ -45,9 +45,10 @@ func InitRouter() *gin.Engine {
 	// 知识库文件创建
 	group2.POST("/create_file", kb_apis.CreateKBFile)
 	group2.POST("/add_file", kb_apis.AddKBFile)
-	group2.GET("/show_index_files", kb_apis.ShowIndexFiles)
+	group2.GET("/show_files", kb_apis.ShowIndexFiles)
 	group2.POST("/recycle_file", kb_apis.RecycleKBFile)
 	group2.POST("/rename_file", kb_apis.RenameKBFile)
+	group2.POST("/search_file", kb_apis.SearchKBFiles)
 
 	// 回收站操作
 	group3 := route.Group("recycle").Use(middleware.VerifyJWT())
@@ -56,6 +57,7 @@ func InitRouter() *gin.Engine {
 	group3.POST("/clear", recycle_apis.ClearUserRecycleBin)
 	group3.POST("/clearup", recycle_apis.CleanupOldRecycleFiles)
 	group3.POST("/restore", recycle_apis.RestoreRecycleFile)
+
 	// swagger
 	route.GET(
 		"/swagger/*any",
