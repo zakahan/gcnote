@@ -53,6 +53,7 @@ type elasticSearchConfig struct {
 	Password string `mapstructure:"password" json:"password"`   // es密码
 	CertPath string `mapstructure:"cert_path" json:"cert_path"` // 许可证路径
 	UseCert  bool   `mapstructure:"use_cert" json:"use_cert"`   // 是否使用许可证
+	Index    string `mapstructure:"index" json:"index"`         // 知识库名称
 }
 
 var ServerCfg ServerConfig

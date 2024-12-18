@@ -64,24 +64,17 @@
 
 # ElasticSearch表
 
-### 知识库文件表（就一张表）
+就一个表把
 
-| 表项             | 数据类型    | 作用                       |
-|----------------| ----------- | -------------------------- |
-| **kb_file_id** | **keyword** | **文件id**                 |
-| index_id       | keyword     | index名称                  |
-| kb_file_name   | text        | 文件名称，用于支持模糊搜索 |
+### 知识库切片表
 
-
-
-### 知识库内表（每个index一个）（这不废话吗）
-
-| 表项         | 数据类型     | 作用                             |
-| ------------ | ------------ | -------------------------------- |
-| page_content | text         | 文本内容                         |
-| // vector    | dense_vector | 向量搜索的支持，我在考虑要不要加 |
-| **doc_id**   | **keyword**  | **切片id，唯一标识切片的id**     |
-| file_id      | keyword      | 表明来源，用于更新文本等操作     |
+| 表项                | 数据类型     | 作用                       |
+| ------------------- | ------------ | -------------------------- |
+| page_content        | text         | 文本内容                   |
+| vector              | dense_vector | 向量表                     |
+| **metadata.doc_id** | **keyword**  | **文件id**                 |
+| metadata.kb_file_id | keyword      | index名称                  |
+| metadata.index_id   | text         | 文件名称，用于支持模糊搜索 |
 
 
 

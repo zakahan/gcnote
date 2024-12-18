@@ -31,3 +31,8 @@ func TestInitLogger(t *testing.T) {
 	zap.S().Error("zz 这是一个错误消息")
 
 }
+
+func TestInitElasticSearch(t *testing.T) {
+	InitConfig()
+	InitElasticSearch()
+}

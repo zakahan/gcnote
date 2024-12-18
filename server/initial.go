@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"gcnote/server/config"
 	"gcnote/server/model"
+	"gcnote/server/search_engine"
 	"github.com/allegro/bigcache/v3"
 	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/redis/go-redis/v9"
@@ -187,4 +188,23 @@ func InitElasticSearch() {
 
 	config.ElasticClient = elasticClient
 
+	// 尝试创建所以i你
+	err, code := search_engine.IndexExist(config.ServerCfg.ElasticConf.Index)
+	if err != nil {
+		zap.S().Infof("查询索引存在性失败 %+v", report)
+		return
+	}
+	if code == 200 {
+
+	} else if code == 404 { // 尚不存在
+		zap.S().Infof("索引 %v 不存在，进行创建操作", config.ServerCfg.ElasticConf.Index)
+		err, code = search_engine.IndexCreate(config.ServerCfg.ElasticConf.Index)
+		if err != nil {
+			zap.S().Infof("索引 %v 创建成功", config.ServerCfg.ElasticConf.Index)
+		} else {
+			zap.S().Errorf("索引 %v 创建失败", config.ServerCfg.ElasticConf.Index)
+		}
+	} else {
+		zap.S().Errorf("查询索引存在性出现意外 StatusCode %v", code)
+	}
 }
