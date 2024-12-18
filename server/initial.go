@@ -167,6 +167,7 @@ func InitElasticSearch() {
 			Password:  config.ServerCfg.ElasticConf.Password,
 			CACert:    cert,
 		}
+		fmt.Println()
 	} else { // 如果不使用证书
 		esCfg = elasticsearch.Config{
 			Addresses: []string{config.ServerCfg.ElasticConf.Address},
@@ -181,21 +182,21 @@ func InitElasticSearch() {
 	}
 	report, err := elasticClient.HealthReport()
 	if err != nil {
-		zap.S().Panicf("ElasticSearch健康状态监控报错 err:%+v", err)
+		zap.S().Errorf("ElasticSearch健康状态监控报错 err:%+v", err)
 	} else {
 		zap.S().Infof("ElasticSearch Health Report %+v", report)
 	}
 
 	config.ElasticClient = elasticClient
 
-	// 尝试创建所以i你
+	// 尝试创建索引
 	err, code := search_engine.IndexExist(config.ServerCfg.ElasticConf.Index)
 	if err != nil {
 		zap.S().Infof("查询索引存在性失败 %+v", report)
 		return
 	}
 	if code == 200 {
-
+		zap.S().Infof("索引 %v 已经存在。", config.ServerCfg.ElasticConf.Index)
 	} else if code == 404 { // 尚不存在
 		zap.S().Infof("索引 %v 不存在，进行创建操作", config.ServerCfg.ElasticConf.Index)
 		err, code = search_engine.IndexCreate(config.ServerCfg.ElasticConf.Index)

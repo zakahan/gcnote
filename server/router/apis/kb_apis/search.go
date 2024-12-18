@@ -23,7 +23,7 @@ import (
 // @Tags       index
 // @Accept     json
 // @Produce    json
-// @Param      request  body      KBFileCSRequest true "搜索请求体"
+// @Param      request  body      dto.KBFileSearchRequest true "搜索请求体"
 // @Success    200      {object}  dto.BaseResponse "成功响应，返回搜索结果"
 // @Failure    400      {object}  dto.BaseResponse "参数错误(code:40000)"
 // @Failure    401      {object}  dto.BaseResponse "Token错误(code:40101)"
