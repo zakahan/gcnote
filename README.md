@@ -91,5 +91,10 @@
 
 1. [gin-demo](https://github.com/ngyhd/gin-demo)
    参考了gin-demo的基本框架以及redis和自定义状态码设计。
+   
 2. [JWT介绍](https://blog.csdn.net/weixin_42030357/article/details/95629924)
    JWT介绍部分参考了此处
+   
+3. [Dify](https://github.com/langgenius/dify)
+
+   参考了其中RAG的部分

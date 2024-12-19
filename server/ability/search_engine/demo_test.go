@@ -7,6 +7,7 @@
 package search_engine
 
 import (
+	"fmt"
 	"gcnote/server/ability/document"
 	"gcnote/server/ability/embeds"
 	"github.com/elastic/go-elasticsearch/v8"
@@ -59,4 +60,25 @@ func TestAdd(t *testing.T) {
 	if err != nil {
 		return
 	}
+}
+
+func TestSearch(t *testing.T) {
+	// 更新后不支持了，因为循环调用
+	indexName := "gcnote"
+	esCfg := elasticsearch.Config{
+		Addresses: []string{"http://10.1.69.142:8581"},
+		Username:  "elastic",
+		Password:  "ebyte_zxcvbnm",
+	}
+
+	elasticClient, err := elasticsearch.NewClient(esCfg)
+	if err != nil {
+		return
+	}
+	response, err := FullTextSearch(elasticClient, indexName, "文本", 1)
+	if err != nil {
+		return
+	}
+	fmt.Println(response)
+
 }
