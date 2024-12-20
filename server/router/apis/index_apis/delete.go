@@ -7,6 +7,7 @@
 package index_apis
 
 import (
+	"gcnote/server/ability/search_engine"
 	"gcnote/server/config"
 	"gcnote/server/dto"
 	"gcnote/server/model"
@@ -98,8 +99,29 @@ func DeleteIndex(ctx *gin.Context) {
 		}
 	}
 
+	// -----------------------------------------------
+	// 查看是否index在es中是否存在
+	err, code := search_engine.IndexExist(config.ElasticClient, "gcnote-"+req.IndexId)
+	if err != nil {
+		zap.S().Errorf("Failed to check exist of index, err: %v", err)
+		ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
+		return
+	}
+	if code != 200 {
+		zap.S().Errorf("the index is not exist, err: %v")
+		ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
+		return
+	}
+	// 删除index
+	err = search_engine.IndexDelete(config.ElasticClient, "gcnote-"+req.IndexId)
+	if err != nil {
+		zap.S().Errorf("Failed to delete the index, err: %v", err)
+		ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
+		return
+	}
+
 	// 提交事务
-	if err := tx.Commit().Error; err != nil {
+	if err = tx.Commit().Error; err != nil {
 		zap.S().Errorf("Failed to commit transaction: %v", err)
 		ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
 		return

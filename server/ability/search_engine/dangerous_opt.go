@@ -7,20 +7,20 @@
 package search_engine
 
 import (
-	"fmt"
 	"gcnote/server/ability/document"
 	"github.com/elastic/go-elasticsearch/v8"
 	"go.uber.org/zap"
 )
 
-func IndexDelete(client *elasticsearch.Client, indexName string) {
+func IndexDelete(client *elasticsearch.Client, indexName string) error {
 	//client := config.ElasticClient
-	response, err := client.Indices.Delete([]string{indexName})
+	_, err := client.Indices.Delete([]string{indexName})
 	if err != nil {
-		fmt.Printf("删除出现错误 %v", err)
 		zap.S().Errorf("删除出现错误 %v", err)
+		return err
 	}
-	fmt.Println(response)
+	//fmt.Println(response)
+	return nil
 }
 
 func ShowAllTexts(client *elasticsearch.Client, indexName string) ([]*document.Document, error) {

@@ -166,7 +166,7 @@ func AddKBFile(ctx *gin.Context) {
 		return
 	}
 	// 文件导入操作
-	_, _, err = convert.AutoConvert(tmpFilePath, kbDirPath, fileExt)
+	_, _, err = convert.AutoConvert(tmpFilePath, kbDirPath, fileExt) // 第二个 mdString
 	if err != nil {
 		zap.S().Errorf("Convert File Error: %v", err)
 		tx.Rollback()
@@ -179,6 +179,8 @@ func AddKBFile(ctx *gin.Context) {
 	if err != nil {
 		zap.S().Errorf("Failed to remove temp dir, err: %v", err)
 	}
+
+	// 将mdString切片，并提交到es中
 
 	// 提交事务
 	err = tx.Commit().Error

@@ -18,7 +18,7 @@ import (
 	"log"
 )
 
-func IndexCreate(client *elasticsearch.Client, indexName string) (error, int) {
+func IndexCreate(client *elasticsearch.Client, indexName string) error {
 	//client := config.ElasticClient
 	body := map[string]interface{}{
 		"settings": _defaultSettings(),
@@ -35,7 +35,7 @@ func IndexCreate(client *elasticsearch.Client, indexName string) (error, int) {
 		client.Indices.Create.WithContext(context.Background()),
 	)
 	if err != nil {
-		return err, 500
+		return err
 	}
 	defer func(Body io.ReadCloser) {
 		err = Body.Close()
@@ -44,7 +44,7 @@ func IndexCreate(client *elasticsearch.Client, indexName string) (error, int) {
 		}
 	}(res.Body)
 
-	return err, res.StatusCode
+	return err
 }
 
 func IndexExist(client *elasticsearch.Client, indexName string) (error, int) {

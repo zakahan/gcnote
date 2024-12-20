@@ -9,7 +9,6 @@ package server
 import (
 	"context"
 	"fmt"
-	"gcnote/server/ability/search_engine"
 	"gcnote/server/config"
 	"gcnote/server/model"
 	"github.com/allegro/bigcache/v3"
@@ -189,26 +188,4 @@ func InitElasticSearch() {
 
 	config.ElasticClient = elasticClient
 
-	// 仅部分测试情况用到，测试前先删除，用来保证每次都是空的
-	//search_engine.IndexDelete(config.ElasticClient, config.ServerCfg.ElasticConf.Index)
-
-	// 尝试创建索引
-	err, code := search_engine.IndexExist(config.ElasticClient, config.ServerCfg.ElasticConf.Index)
-	if err != nil {
-		zap.S().Infof("查询索引存在性失败 %+v", report)
-		return
-	}
-	if code == 200 {
-		zap.S().Infof("索引 %v 已经存在。", config.ServerCfg.ElasticConf.Index)
-	} else if code == 404 { // 尚不存在
-		zap.S().Infof("索引 %v 不存在，进行创建操作", config.ServerCfg.ElasticConf.Index)
-		err, code = search_engine.IndexCreate(config.ElasticClient, config.ServerCfg.ElasticConf.Index)
-		if err != nil {
-			zap.S().Infof("索引 %v 创建成功", config.ServerCfg.ElasticConf.Index)
-		} else {
-			zap.S().Errorf("索引 %v 创建失败", config.ServerCfg.ElasticConf.Index)
-		}
-	} else {
-		zap.S().Errorf("查询索引存在性出现意外 StatusCode %v", code)
-	}
 }

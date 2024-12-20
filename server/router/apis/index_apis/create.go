@@ -8,6 +8,7 @@ package index_apis
 
 import (
 	"errors"
+	"gcnote/server/ability/search_engine"
 	"gcnote/server/config"
 	"gcnote/server/dto"
 	"gcnote/server/model"
@@ -87,7 +88,7 @@ func CreateIndex(ctx *gin.Context) {
 		ctx.JSON(http.StatusConflict, dto.Fail(dto.IndexExistErrCode))
 		return
 	}
-
+	// ------------------------------------------------------------------
 	// 开始事务
 	tx = config.DB.Begin()
 	if tx.Error != nil {
@@ -103,7 +104,7 @@ func CreateIndex(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
 		return
 	}
-
+	// ------------------------------------------------------------------
 	// 文件系统创建
 	kbPath := config.PathCfg.KnowledgeBasePath
 	// 检查路径是否存在
@@ -134,6 +135,28 @@ func CreateIndex(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, dto.FailWithMessage(dto.InternalErrCode, "create file dir error"))
 		return
 	}
+	// ------------------------------------------------------------------
+	// 创建es索引
+	err, code := search_engine.IndexExist(config.ElasticClient, "gcnote-"+indexId)
+	if err != nil || code != 404 {
+		if err != nil {
+			zap.S().Errorf("Failed to check exist of index, err: %v", err)
+		}
+		if code != 404 {
+			zap.S().Errorf("index is already exist, code == %v", code)
+		}
+		ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
+		return
+	}
+	// 只有404才创建
+	err = search_engine.IndexCreate(config.ElasticClient, "gcnote-"+indexId)
+	if err != nil {
+		zap.S().Errorf("Failed to create index, err: %v", err)
+		ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
+		return
+	}
+
+	// ----------------------------------------------------
 
 	err = tx.Commit().Error
 	if err != nil {
@@ -141,6 +164,7 @@ func CreateIndex(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
 		return
 	}
+
 	zap.S().Infof("Create index %v done.", indexNew.IndexName)
 	ctx.JSON(http.StatusOK, dto.Success())
 }

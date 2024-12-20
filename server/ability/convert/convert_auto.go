@@ -16,6 +16,9 @@ import (
 )
 
 func AutoConvert(documentPath string, outputDir string, suffix string) (string, string, error) {
+	/*
+		返回值：mdPath, mdString, err
+	*/
 	// 首先根据输入的suffix来处理
 	var suffixList = []string{".docx", ".html", ".txt", ".md"}
 	// 如果suffix不为空，直接匹配是否在suffixList里，否则需要判断
