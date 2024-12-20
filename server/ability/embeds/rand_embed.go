@@ -13,7 +13,7 @@ import (
 	"math/rand"
 )
 
-// 模拟一下embedding，毕竟现在也不能来真的
+// RandEmbedding 模拟一下embedding，毕竟现在也不能来真的
 func RandEmbedding(documents []*document.Document) ([][]float64, error) {
 	l := len(documents)
 	r := rand.New(rand.NewSource(int64(l)))
@@ -33,6 +33,20 @@ func RandEmbedding(documents []*document.Document) ([][]float64, error) {
 
 	}
 	return embedding, nil
+}
+
+func QueryRandEmbedding(query string) ([]float64, error) {
+	randomFloats := make([]float64, 1024)
+	// 填充切片，每个元素都是0到1之间的随机float64数
+	r := rand.New(rand.NewSource(42))
+	for i := range randomFloats {
+		randomFloats[i] = r.Float64()
+	}
+	randomFloats, err := NormalizeVector(randomFloats)
+	if err != nil {
+		return nil, err
+	}
+	return randomFloats, nil
 }
 
 func NormalizeVector(v []float64) ([]float64, error) {

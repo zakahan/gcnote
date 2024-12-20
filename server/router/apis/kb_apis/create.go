@@ -171,6 +171,8 @@ func CreateKBFile(ctx *gin.Context) {
 		}
 	}(file)
 
+	// 不需要对ES做操作，因为是空的
+
 	// 提交事务
 	err = tx.Commit().Error
 	if err != nil {

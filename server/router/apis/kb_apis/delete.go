@@ -7,6 +7,7 @@
 package kb_apis
 
 import (
+	"gcnote/server/ability/search_engine"
 	"gcnote/server/config"
 	"gcnote/server/dto"
 	"gcnote/server/model"
@@ -118,6 +119,16 @@ func RecycleKBFile(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
 		return
 	}
+
+	// 删除对应的所有切片
+	err = search_engine.DeleteByTerm(config.ElasticClient, "gcnote-"+req.IndexId, "kb_file_id", req.KBFileId)
+	if err != nil {
+		zap.S().Errorf("Failed to delete the document in elasticsearch index, err: %v", err)
+		tx.Rollback()
+		ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
+		return
+	}
+
 	// 提交事务
 	err = tx.Commit().Error
 	if err != nil {

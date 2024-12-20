@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-func splitMarkdown(input string, maxTextLength int) []string {
+func SplitMarkdown(input string, maxTextLength int) []string {
 	// Regular expressions for splitting
 	patterns := []string{
 		`(?m)^(#{1,6} .*)`,                 // Heading: #, ##, ###, etc.

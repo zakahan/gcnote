@@ -7,6 +7,9 @@
 package recycle_apis
 
 import (
+	"gcnote/server/ability/embeds"
+	"gcnote/server/ability/search_engine"
+	"gcnote/server/ability/splitter"
 	"gcnote/server/config"
 	"gcnote/server/dto"
 	"gcnote/server/model"
@@ -66,20 +69,7 @@ func RestoreRecycleFile(ctx *gin.Context) {
 	}
 
 	// 检查对应的知识库是否存在
-	var index model.Index
-	if err := config.DB.Where("index_id = ?", recycleFile.SourceIndexId).First(&index).Error; err != nil {
-		zap.S().Infof("Knowledge base not found, creating new one: %v", recycleFile.SourceIndexId)
-		index = model.Index{
-			UserId:    currentUserId,
-			IndexId:   recycleFile.SourceIndexId,
-			IndexName: "Recovered Knowledge Base:" + recycleFile.SourceIndexId[0:10],
-		}
-		if err := config.DB.Create(&index).Error; err != nil {
-			zap.S().Errorf("Failed to create knowledge base: %v", err)
-			ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
-			return
-		}
-	}
+	// 不负责检查是否存在知识库，应该是先检查是否存在这个知识库，如果不存在，前端调用创建操作。不要耦合在这里。
 
 	// 文件从回收站恢复到知识库目录
 	recycleFilePath := filepath.Join(config.PathCfg.RecycleBinPath, recycleFile.SourceIndexId, recycleFile.KBFileId)
@@ -130,6 +120,25 @@ func RestoreRecycleFile(ctx *gin.Context) {
 		return
 	}
 
+	// 恢复到ElasticSearch中
+	filePath := filepath.Join(dst, recycleFile.KBFileName+".md")
+	// 读取filePath为文件字符串
+	content, err := os.ReadFile(filePath)
+	if err != nil {
+		zap.S().Errorf("Failed to read file: %v", err)
+		ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
+		return
+	}
+	mdString := string(content)
+	chunks := splitter.SplitMarkdown(mdString, 512)
+	docList := splitter.Chunk2Doc(chunks, recycleFile.KBFileId, recycleFile.SourceIndexId)
+	embedList, err := embeds.RandEmbedding(docList) // fixme 之后换成正常的Embedding服务
+	err = search_engine.AddDocuments(config.ElasticClient, "gcnote-"+recycleFile.SourceIndexId, docList, embedList)
+	if err != nil {
+		zap.S().Errorf("Failed to add document into index, err: %v", err)
+		ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
+		return
+	}
 	// 返回成功响应
 	ctx.JSON(http.StatusOK, dto.Success())
 }

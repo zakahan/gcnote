@@ -9,7 +9,6 @@ package document
 import (
 	"fmt"
 	"github.com/google/uuid"
-	"strconv"
 )
 
 type Document struct {
@@ -60,7 +59,7 @@ func ConvertDocument(doc map[string]interface{}) (*Document, error) {
 type DocType int
 
 const (
-	TEXT = iota
+	TEXT DocType = iota + 1
 	IMAGE
 	TABLE
 )
@@ -77,7 +76,7 @@ func ShowDocumentExample() *Document {
 			"doc_id":     uuid.New().String(),
 			"kb_file_id": uuid.New().String(),
 			"index_id":   uuid.New().String(),
-			"type":       strconv.Itoa(TEXT),
+			"type":       TEXT.String(),
 			"image_path": "",
 		},
 	}

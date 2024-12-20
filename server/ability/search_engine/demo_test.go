@@ -56,7 +56,7 @@ func TestAdd(t *testing.T) {
 	if err != nil {
 		return
 	}
-	err = AddTexts(elasticClient, indexName, docList, embedList)
+	err = AddDocuments(elasticClient, indexName, docList, embedList)
 	if err != nil {
 		return
 	}

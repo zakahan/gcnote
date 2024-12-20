@@ -9,6 +9,9 @@ package kb_apis
 import (
 	"errors"
 	"gcnote/server/ability/convert"
+	"gcnote/server/ability/embeds"
+	"gcnote/server/ability/search_engine"
+	"gcnote/server/ability/splitter"
 	"gcnote/server/config"
 	"gcnote/server/dto"
 	"gcnote/server/model"
@@ -166,7 +169,8 @@ func AddKBFile(ctx *gin.Context) {
 		return
 	}
 	// 文件导入操作
-	_, _, err = convert.AutoConvert(tmpFilePath, kbDirPath, fileExt) // 第二个 mdString
+	var mdString string
+	_, mdString, err = convert.AutoConvert(tmpFilePath, kbDirPath, fileExt) // 第二个 mdString
 	if err != nil {
 		zap.S().Errorf("Convert File Error: %v", err)
 		tx.Rollback()
@@ -181,6 +185,16 @@ func AddKBFile(ctx *gin.Context) {
 	}
 
 	// 将mdString切片，并提交到es中
+	chunks := splitter.SplitMarkdown(mdString, 512)
+	docList := splitter.Chunk2Doc(chunks, KBFileNew.KBFileId, KBFileNew.IndexId)
+	embedList, err := embeds.RandEmbedding(docList) // fixme 之后换成正常的Embedding服务
+	err = search_engine.AddDocuments(config.ElasticClient, "gcnote-"+KBFileNew.IndexId, docList, embedList)
+	if err != nil {
+		zap.S().Errorf("Failed to add document into index, err: %v", err)
+		tx.Rollback()
+		ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
+		return
+	}
 
 	// 提交事务
 	err = tx.Commit().Error
