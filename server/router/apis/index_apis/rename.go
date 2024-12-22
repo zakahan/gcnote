@@ -21,7 +21,7 @@ import (
 
 // RenameIndex
 // @Summary      知识库重命名
-// @Description  重命名知识库(检查目标名称是否已存在，防止重名)
+// @Description  检查存在+重命名知识库(检查目标名称是否已存在，防止重名)
 // @ID           rename-index
 // @Tags         index
 // @Accept       json

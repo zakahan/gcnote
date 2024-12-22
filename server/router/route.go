@@ -41,6 +41,7 @@ func InitRouter() *gin.Engine {
 	group2.POST("/delete_index", index_apis.DeleteIndex)
 	group2.POST("/rename_index", index_apis.RenameIndex)
 	group2.GET("/show_indexes", index_apis.ShowIndexes)
+	group2.GET("/retrieval", index_apis.RetrievalIndex)
 
 	// 知识库文件创建
 	group2.POST("/create_file", kb_apis.CreateKBFile)

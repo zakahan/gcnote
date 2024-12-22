@@ -21,7 +21,7 @@ import (
 
 // DeleteIndex
 // @Summary      删除知识库及其关联文件
-// @Description  删除知识库(MYSQL + 文件系统已完成 + 更新redis)，同时删除关联的KBFile记录及文件
+// @Description  检查存在+删除知识库(MYSQL + 文件系统已完成 + 更新redis)，同时删除关联的KBFile记录及文件
 // @ID           delete-index
 // @Tags         index
 // @Accept       json

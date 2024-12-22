@@ -18,6 +18,19 @@ import (
 	"net/http"
 )
 
+// RetrievalIndex
+// @Summary 检索文件
+// @Description 根据文档切片进行索引
+// @ID         retrieval_index
+// @Tags       index
+// @Accept     json
+// @Produce    json
+// @Param      request  body      dto.KBFileSearchRequest true "搜索请求体"
+// @Success    200      {object}  dto.BaseResponse "成功响应，返回搜索结果"
+// @Failure    400      {object}  dto.BaseResponse "参数错误(code:40000)"
+// @Failure    401      {object}  dto.BaseResponse "Token错误(code:40101)"
+// @Failure    500      {object}  dto.BaseResponse "服务器内部错误(code:50000)"
+// @Router     /index/search_file [post]
 func RetrievalIndex(ctx *gin.Context) {
 	var req dto.RetrievalRequest
 	err := ctx.ShouldBindJSON(&req)
