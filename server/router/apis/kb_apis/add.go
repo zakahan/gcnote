@@ -68,22 +68,14 @@ func AddKBFile(ctx *gin.Context) {
 	// 查看知识库是否存在
 	// fixme 这里要改为redis
 	indexSearch := model.Index{}
-	tx := config.DB.Where("index_id = ? AND user_id = ?",
-		req.IndexId, currentUserId,
-	).First(&indexSearch)
-	if tx.Error != nil && !errors.Is(tx.Error, gorm.ErrRecordNotFound) {
-		zap.S().Errorf("Create index %v, err: %v", req.IndexId, tx.Error)
-		ctx.JSON(http.StatusOK, dto.Fail(dto.InternalErrCode))
-		return
-	}
+	tx := config.DB.Where("index_id = ? AND user_id = ?", req.IndexId, currentUserId).First(&indexSearch)
 	if tx.Error != nil {
-		zap.S().Errorf("Failed to begin transaction, err:%v", tx.Error)
+		if errors.Is(tx.Error, gorm.ErrRecordNotFound) {
+			ctx.JSON(http.StatusConflict, dto.FailWithMessage(dto.IndexNotExistErrCode, "知识库 "+req.IndexId+" 不存在"))
+			return
+		}
+		zap.S().Errorf("Search Error %v, err: %v", req.IndexId, tx.Error)
 		ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
-		return
-	}
-	if tx.RowsAffected == 0 {
-		ctx.JSON(http.StatusConflict, dto.FailWithMessage(dto.IndexNotExistErrCode,
-			"知识库"+req.IndexId+"不存在"))
 		return
 	}
 

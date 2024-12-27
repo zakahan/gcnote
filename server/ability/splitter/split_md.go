@@ -94,3 +94,60 @@ func splitLargeText(text string, maxTextLength int) []string {
 
 	return result
 }
+
+// SplitMarkdownEasy 仅仅依靠规则切分，不考虑字数之类的东西，为了展示用的
+func SplitMarkdownEasy(input string) []string {
+	// Regular expressions for splitting
+	patterns := []string{
+		`(?m)^(#{1,6} .*)`,                // Heading: #, ##, ###, etc.
+		`(?m)\|.*\|\s*\n(?:\|.*\|\s*\n)*`, // Tables
+		`!\[.*?\]\(.*?\)`,                 // Images
+		`(?m)^>.*`,                        // Blockquotes
+		"```[\\s\\S]*?```",                // Code blocks
+		`(?m)^-{3,}\s*$`,                  // Horizontal rules
+	}
+
+	// Combine patterns into one
+	re := regexp.MustCompile(strings.Join(patterns, "|"))
+
+	// Find matches and split
+	matches := re.FindAllStringIndex(input, -1)
+
+	var result []string
+	lastIndex := 0
+
+	for _, match := range matches {
+		start, end := match[0], match[1]
+		if start > lastIndex {
+			result = append(result, strings.TrimSpace(input[lastIndex:start]))
+		}
+		result = append(result, strings.TrimSpace(input[start:end]))
+		lastIndex = end
+	}
+
+	// Append the remaining part of the input
+	if lastIndex < len(input) {
+		result = append(result, strings.TrimSpace(input[lastIndex:]))
+	}
+
+	// Filter out empty strings
+	finalResult := []string{}
+	for _, item := range result {
+		if item != "" {
+			finalResult = append(finalResult, item)
+		}
+	}
+
+	// Additional split by double newline \n\n
+	var processedResult []string
+	for _, segment := range finalResult {
+		parts := strings.Split(segment, "\n\n")
+		for _, part := range parts {
+			if trimmed := strings.TrimSpace(part); trimmed != "" {
+				processedResult = append(processedResult, trimmed)
+			}
+		}
+	}
+
+	return processedResult
+}

@@ -37,7 +37,7 @@
 | :--: | -------------- | ------------------- | -------- |
 |  ✅  | 创建知识库     | /index/create_index | POS      |
 |  ✅  | 删除知识库     | /index/delete_index | POST     |
-| ⬜️ | 知识库是否存在 | /index/search_index | GET      |
+| :white_check_mark: | 知识库是否存在 | /index/search_index | GET      |
 |  ✅  | 展示知识库清单 | /index/show_indexs  | GET      |
 |  ✅  | 重命名知识库   | /index/rename_index | POST     |
 
@@ -46,14 +46,14 @@
 | 进展 | 接口说明           | 接口地址             | 访问方式 |
 | :--: | ------------------ | -------------------- | -------- |
 |  ✅  | 新建文档           | /index/create_file   | POST     |
-| ⬜️ | 读取文档           | /index/read_file     | POST     |
+| :white_check_mark: | 读取文档           | /index/read_file     | POST     |
 | ⬜️ | 更新文档           | /index/update_file   | POST     |
 |  ✅  | 导入文档           | /index/add_file      | POST     |
 |  ✅  | 重命名文档         | /index/rename_file   | POST     |
 |  ✅  | 删除文档到回收站   | /index/recycle_files | POST     |
 |  ✅  | 搜索文档(按文件名) | /index/search_file   | POST     |
 |  ✅  | 展示知识库文档列表 | /index/show_files    | GET      |
-| ⬜️ | 文档存在           | /index/file_exist    | GET      |
+| :white_check_mark: | 文档存在           | /index/file_exist    | GET      |
 | ⬜️ | 文档共享           | /index/share_files   | POST     |
 
 - 新建文档，每次都是新建一个空的存进去先，这样后续所有操作都变成了更新，而不是新建 + 更新
@@ -83,7 +83,7 @@
 | :white_large_square: | 检索生成       | /index/naive_rag | POST     |
 | :white_large_square: | 直接AI问答     | /index/chat_llm  | POST     |
 
-
+- 检索和AI部分，额，后续做。做不完就算了
 
 将搜索设置为基于知识库这一层次的搜索问答，而不是单个文件，我都找到文件了？我还用你搜？
 

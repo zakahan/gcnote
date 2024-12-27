@@ -12,6 +12,7 @@ import (
 	"gcnote/server/ability/convert/convert_html"
 	"gcnote/server/ability/convert/convert_md"
 	"gcnote/server/ability/convert/convert_txt"
+	"os"
 	"path/filepath"
 )
 
@@ -42,10 +43,23 @@ func AutoConvert(documentPath string, outputDir string, suffix string) (string, 
 	if suffix == ".docx" {
 		return convert_docx.DocxConvert(documentPath, outputDir)
 	} else if suffix == ".html" {
+		// 在outputDir里创建一个名为images的文件夹
+		err = os.Mkdir(filepath.Join(outputDir, "images"), os.ModePerm)
+		if err != nil {
+			return "", "", err
+		}
 		return convert_html.HtmlConvert(documentPath, outputDir)
 	} else if suffix == ".txt" {
+		err = os.Mkdir(filepath.Join(outputDir, "images"), os.ModePerm)
+		if err != nil {
+			return "", "", err
+		}
 		return convert_txt.TxtConvert(documentPath, outputDir)
 	} else if suffix == ".md" {
+		err = os.Mkdir(filepath.Join(outputDir, "images"), os.ModePerm)
+		if err != nil {
+			return "", "", err
+		}
 		return convert_md.MdConvert(documentPath, outputDir)
 	} else {
 		return "", "", errors.New("未知的文件格式：" + suffix)

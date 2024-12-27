@@ -59,7 +59,7 @@ func ConvertDocument(doc map[string]interface{}) (*Document, error) {
 type DocType int
 
 const (
-	TEXT DocType = iota + 1
+	TEXT DocType = iota
 	IMAGE
 	TABLE
 )

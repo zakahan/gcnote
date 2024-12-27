@@ -34,6 +34,7 @@ type PathConfig struct {
 	KnowledgeBasePath string
 	RecycleBinPath    string
 	TempDirPath       string
+	ImageServerURL    string
 }
 
 func Constructor() PathConfig {
@@ -44,6 +45,7 @@ func Constructor() PathConfig {
 	knowledgeBasePath := filepath.Join(baseProjectPath, "data/local/knowledge_base")
 	recycleBinPath := filepath.Join(baseProjectPath, "data/local/recycle_bin")
 	tempFilePath := filepath.Join(baseProjectPath, "data/tmp")
+	imageServerURL := "http://localhost:8086/images"
 
 	return PathConfig{
 		BaseProjectPath:   baseProjectPath,
@@ -53,6 +55,7 @@ func Constructor() PathConfig {
 		KnowledgeBasePath: knowledgeBasePath,
 		RecycleBinPath:    recycleBinPath,
 		TempDirPath:       tempFilePath,
+		ImageServerURL:    imageServerURL,
 	}
 }
 

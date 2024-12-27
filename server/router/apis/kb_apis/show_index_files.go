@@ -31,10 +31,13 @@ import (
 // @Router 		/index/show_files [get]
 func ShowIndexFiles(ctx *gin.Context) {
 	var req dto.KBFileShowRequest
+
 	err := ctx.ShouldBindJSON(&req)
 	if err != nil {
+		// 打印请求体
+		zap.S().Debugf("Invalid parameters: %+v", ctx.Request)
 		ctx.JSON(http.StatusBadRequest, dto.Fail(dto.ParamsErrCode))
-		//zap.S().Debugf("")
+		//zap.S().Debugf("%v",ctx.)
 		return
 	}
 	// 获取userId

@@ -57,10 +57,10 @@ func SearchKBFiles(ctx *gin.Context) {
 
 	if req.IsFuzzySearch {
 		// 模糊查询
-		tx = tx.Where("index_id = ? AND kb_file_name LIKE ?", req.IndexId, "%"+req.KBFileName+"%")
+		tx = tx.Where("kb_file_name LIKE ?", "%"+req.KBFileName+"%")
 	} else {
 		// 精确查询
-		tx = tx.Where("index_id = ? AND kb_file_name = ?", req.IndexId, req.KBFileName)
+		tx = tx.Where("kb_file_name = ?", req.KBFileName)
 	}
 
 	if err := tx.Find(&kbFileList).Error; err != nil {
