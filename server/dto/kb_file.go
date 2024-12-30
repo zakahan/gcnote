@@ -53,3 +53,7 @@ type KBFileReadRequest struct {
 	KBFileId   string `json:"kb_file_id" binding:"required"`
 	IndexId    string `json:"index_id" binding:"required"`
 }
+
+type RecentDocsRequest struct {
+	Mode string `json:"mode" binding:"required"` // 模式: "modified" 或 "created"
+}

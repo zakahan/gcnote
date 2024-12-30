@@ -53,7 +53,7 @@ func SearchKBFiles(ctx *gin.Context) {
 
 	// 查询文件
 	var kbFileList []model.KBFile
-	tx := config.DB.Model(&model.KBFile{})
+	tx := config.DB.Model(&model.KBFile{}).Where("user_id = ?", currentUserId)
 
 	if req.IsFuzzySearch {
 		// 模糊查询

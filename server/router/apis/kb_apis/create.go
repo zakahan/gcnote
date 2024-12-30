@@ -102,6 +102,7 @@ func CreateKBFile(ctx *gin.Context) {
 	// 创建一个KBFile
 	KBFileId := wrench.IdGenerator()
 	KBFileNew := model.KBFile{
+		UserId:     currentUserId,
 		IndexId:    req.IndexId,
 		KBFileId:   KBFileId,
 		KBFileName: req.KBFileName,

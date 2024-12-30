@@ -52,7 +52,7 @@ func InitRouter() *gin.Engine {
 	group2.POST("/delete_index", index_apis.DeleteIndex)
 	group2.POST("/rename_index", index_apis.RenameIndex)
 	group2.GET("/show_indexes", index_apis.ShowIndexes)
-	group2.GET("/retrieval", index_apis.RetrievalIndex)
+	group2.POST("/retrieval", index_apis.RetrievalIndex)
 
 	// 知识库文件创建
 	group2.POST("/create_file", kb_apis.CreateKBFile)
@@ -62,6 +62,7 @@ func InitRouter() *gin.Engine {
 	group2.POST("/rename_file", kb_apis.RenameKBFile)
 	group2.POST("/search_file", kb_apis.SearchKBFiles) // 这个有问题，没有限制用户，能搜到别的用户的文件，这个要改一下
 	group2.POST("/read_file", kb_apis.ReadFile)
+	group2.POST("/recent_docs", kb_apis.RecentDocs)
 
 	// 回收站操作
 	group3 := route.Group("recycle").Use(middleware.VerifyJWT())
@@ -72,6 +73,7 @@ func InitRouter() *gin.Engine {
 	group3.POST("/restore", recycle_apis.RestoreRecycleFile)
 
 	route.GET("/images/:index_id/:kb_file_id/:image_name", utils_apis.GetImage)
+	route.POST("/images/upload", utils_apis.UploadImage)
 	// swagger
 	route.GET(
 		"/swagger/*any",

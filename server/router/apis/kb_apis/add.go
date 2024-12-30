@@ -113,6 +113,7 @@ func AddKBFile(ctx *gin.Context) {
 
 	// 开始sql操作
 	KBFileNew := model.KBFile{
+		UserId:     currentUserId,
 		KBFileId:   wrench.IdGenerator(),
 		KBFileName: strings.TrimSuffix(fileName, fileExt),
 		IndexId:    req.IndexId,

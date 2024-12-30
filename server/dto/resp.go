@@ -6,6 +6,8 @@
 
 package dto
 
+import "time"
+
 type Code int64
 
 const SuccessCode Code = 0
@@ -153,4 +155,14 @@ func FailWithData(failCode Code, data interface{}) BaseResponse {
 		Msg:  message[failCode],
 		Data: data,
 	}
+}
+
+// RecentDocResponse 定义响应数据格式
+type RecentDocResponse struct {
+	FileId     string    `json:"file_id"`
+	IndexId    string    `json:"index_id"`
+	FileName   string    `json:"file_name"`
+	UserId     string    `json:"user_id"`
+	CreatedAt  time.Time `json:"created_at"`  // 创建时间
+	ModifiedAt time.Time `json:"modified_at"` // 修改时间
 }
