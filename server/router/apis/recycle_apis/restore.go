@@ -103,6 +103,7 @@ func RestoreRecycleFile(ctx *gin.Context) {
 
 	// 在知识库中创建文件记录
 	newFile := model.KBFile{
+		UserId:     currentUserId,
 		IndexId:    recycleFile.SourceIndexId,
 		KBFileId:   recycleFile.KBFileId,
 		KBFileName: recycleFile.KBFileName,

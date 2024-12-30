@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"gcnote/server/config"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -64,6 +65,7 @@ func GetImage(ctx *gin.Context) {
 }
 
 func UploadImage(ctx *gin.Context) {
+
 	indexId := ctx.PostForm("index_id")
 	kbFileId := ctx.PostForm("kb_file_id")
 	file, err := ctx.FormFile("file")
@@ -71,6 +73,8 @@ func UploadImage(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"Code": 1, "Msg": "No file is received"})
 		return
 	}
+	zap.S().Debugf("Upload Image indexId:%s", indexId)
+	zap.S().Debugf("Upload Image kbFileId:%s", kbFileId)
 
 	ext := filepath.Ext(file.Filename)
 	if ext != ".jpg" && ext != ".jpeg" && ext != ".png" && ext != ".gif" {

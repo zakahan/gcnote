@@ -63,12 +63,13 @@ func InitRouter() *gin.Engine {
 	group2.POST("/search_file", kb_apis.SearchKBFiles) // 这个有问题，没有限制用户，能搜到别的用户的文件，这个要改一下
 	group2.POST("/read_file", kb_apis.ReadFile)
 	group2.POST("/recent_docs", kb_apis.RecentDocs)
+	group2.POST("/update_file", kb_apis.UpdateKBFile)
 
 	// 回收站操作
 	group3 := route.Group("recycle").Use(middleware.VerifyJWT())
 	group3.POST("/delete_file", recycle_apis.DeleteRecycleFile)
 	group3.GET("/show_files", recycle_apis.ShowRecycleFiles)
-	group3.POST("/clear", recycle_apis.ClearUserRecycleBin)
+	group3.GET("/clear", recycle_apis.ClearUserRecycleBin)
 	group3.POST("/clearup", recycle_apis.CleanupOldRecycleFiles)
 	group3.POST("/restore", recycle_apis.RestoreRecycleFile)
 

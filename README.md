@@ -47,7 +47,7 @@
 | :--: | ------------------ | -------------------- | -------- |
 |  ✅  | 新建文档           | /index/create_file   | POST     |
 | :white_check_mark: | 读取文档           | /index/read_file     | POST     |
-| ⬜️ | 更新文档           | /index/update_file   | POST     |
+| :white_check_mark: | 更新文档           | /index/update_file   | POST     |
 |  ✅  | 导入文档           | /index/add_file      | POST     |
 |  ✅  | 重命名文档         | /index/rename_file   | POST     |
 |  ✅  | 删除文档到回收站   | /index/recycle_files | POST     |
