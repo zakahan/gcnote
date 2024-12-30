@@ -33,7 +33,7 @@ import (
 // @Success      200      {object}  dto.BaseResponse   "成功响应，返回success"
 // @Failure      400      {object}  dto.BaseResponse   "参数错误(code:40000)"
 // @Failure      401      {object}  dto.BaseResponse   "Token错误(code:40101)"
-// @Failure      404      {object}  dto.BaseResponse   "知识库或文件不存在(code:40201)"
+// @Failure      404      {object}  dto.BaseResponse   "知识库或文件不存在(code:40401)"
 // @Failure      500      {object}  dto.BaseResponse   "服务器内部错误(code:50000)"
 // @Router       /recycle/restore [post]
 func RestoreRecycleFile(ctx *gin.Context) {
@@ -64,7 +64,7 @@ func RestoreRecycleFile(ctx *gin.Context) {
 	var recycleFile model.Recycle
 	if err := config.DB.Where("kb_file_id = ?", req.KBFileId).First(&recycleFile).Error; err != nil {
 		zap.S().Errorf("Recycle file not found: %v", req.KBFileId)
-		ctx.JSON(http.StatusNotFound, dto.Fail(dto.IndexNotExistErrCode))
+		ctx.JSON(http.StatusNotFound, dto.Fail(dto.RecycleFileNotExistErrCode))
 		return
 	}
 

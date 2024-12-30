@@ -50,7 +50,7 @@ const (
 	KBFileAddFileErrCode  Code = 40303
 
 	// 回收站业务错误码 04
-	RecycleFileNameErrCode     Code = 40400
+	//RecycleFileNameErrCode     Code = 40400
 	RecycleFileNotExistErrCode Code = 40401
 )
 

@@ -31,7 +31,7 @@ import (
 // @Success      200      {object}  dto.BaseResponse   "成功响应，返回success"
 // @Failure      400      {object}  dto.BaseResponse   "参数错误(code:40000)"
 // @Failure      401      {object}  dto.BaseResponse   "Token错误(code:40101)"
-// @Failure      404      {object}  dto.BaseResponse   "文件记录未找到(code:40201)"
+// @Failure      404      {object}  dto.BaseResponse   "文件记录未找到(code:40401)"
 // @Failure      500      {object}  dto.BaseResponse   "服务器内部错误(code:50000)"
 // @Router       /recycle/delete_file [post]
 func DeleteRecycleFile(ctx *gin.Context) {
@@ -72,7 +72,7 @@ func DeleteRecycleFile(ctx *gin.Context) {
 				currentUserId, req.KBFileId)
 			ctx.JSON(
 				http.StatusNotFound,
-				dto.FailWithMessage(dto.IndexNotExistErrCode, "try to rename the index but record note found."),
+				dto.FailWithMessage(dto.RecycleFileNotExistErrCode, "try to rename the index but record note found."),
 			)
 			return
 		} else {
