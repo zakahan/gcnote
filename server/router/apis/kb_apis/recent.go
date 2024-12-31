@@ -7,11 +7,14 @@
 package kb_apis
 
 import (
+	"errors"
+	"gcnote/server/cache"
 	"gcnote/server/config"
 	"gcnote/server/dto"
 	"gcnote/server/model"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 	"net/http"
 )
@@ -51,25 +54,37 @@ func RecentDocs(ctx *gin.Context) {
 		return
 	}
 
-	// 查询最近的文件
 	var kbFileList []model.KBFile
-	tx := config.DB.Model(&model.KBFile{}).Where("user_id = ?", currentUserId)
+	var err error
 
 	switch req.Mode {
 	case "modified":
-		// 按最近修改时间排序
-		tx = tx.Order("updated_at DESC")
+		// 从缓存获取最近访问的kb文件列表
+		kbFileList, err = cache.GetRecentKBList(ctx, currentUserId)
+		if errors.Is(err, redis.Nil) {
+			// 缓存未命中，从数据库查询
+			kbFileList, err = cache.RefreshRecentKBList(ctx, currentUserId)
+			if err != nil {
+				zap.S().Errorf("Failed to get recent kb file list: %v", err)
+				ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
+				return
+			}
+		} else if err != nil {
+			zap.S().Errorf("Failed to get recent kb file list from cache: %v", err)
+			ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
+			return
+		}
 	case "created":
-		// 按最近创建时间排序
+		// 按创建时间查询数据库
+		tx := config.DB.Model(&model.KBFile{}).Where("user_id = ?", currentUserId)
 		tx = tx.Order("created_at DESC")
+		if err := tx.Limit(20).Find(&kbFileList).Error; err != nil {
+			zap.S().Errorf("failed to retrieve recent docs: %v", err)
+			ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
+			return
+		}
 	default:
 		ctx.JSON(http.StatusBadRequest, dto.Fail(dto.ParamsErrCode))
-		return
-	}
-
-	if err := tx.Limit(20).Find(&kbFileList).Error; err != nil {
-		zap.S().Errorf("failed to retrieve recent docs: %v", err)
-		ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
 		return
 	}
 

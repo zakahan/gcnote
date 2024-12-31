@@ -7,11 +7,13 @@
 package kb_apis
 
 import (
-	"gcnote/server/config"
+	"errors"
+	"gcnote/server/cache"
 	"gcnote/server/dto"
-	"gcnote/server/model"
+	//"gcnote/server/model"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 	"net/http"
 )
@@ -57,20 +59,42 @@ func ShowIndexFiles(ctx *gin.Context) {
 		return
 	}
 
-	// 获取文件
-	kbFileModel := model.KBFile{}
-	tx := config.DB.Model(&kbFileModel).Where(
-		"index_id = ?",
-		req.IndexId,
-	)
-	// 输出
-	var kbFileList []model.KBFile
-	err = tx.Find(&kbFileList).Error
-	if err != nil {
-		zap.S().Errorf("failed to find kb_file list: %v", err)
+	// 先从缓存验证index是否存在
+	index, err := cache.GetIndexInfo(ctx, req.IndexId)
+	if errors.Is(err, redis.Nil) {
+		// 缓存未命中，从数据库查询
+		index, err = cache.RefreshIndexInfo(ctx, req.IndexId)
+		if err != nil {
+			zap.S().Errorf("Failed to get index info: %v", err)
+			ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
+			return
+		}
+	} else if err != nil {
+		zap.S().Errorf("Failed to get index from cache: %v", err)
 		ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
 		return
 	}
-	ctx.JSON(http.StatusOK, dto.SuccessWithData(kbFileList))
 
+	if index == nil || index.IndexId == "" || index.UserId != currentUserId {
+		ctx.JSON(http.StatusNotFound, dto.Fail(dto.IndexNotExistErrCode))
+		return
+	}
+
+	// 从缓存获取kb文件列表
+	kbFileList, err := cache.GetIndexKBList(ctx, req.IndexId)
+	if errors.Is(err, redis.Nil) {
+		// 缓存未命中，从数据库查询
+		kbFileList, err = cache.RefreshIndexKBList(ctx, req.IndexId)
+		if err != nil {
+			zap.S().Errorf("Failed to get kb file list: %v", err)
+			ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
+			return
+		}
+	} else if err != nil {
+		zap.S().Errorf("Failed to get kb file list from cache: %v", err)
+		ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, dto.SuccessWithData(kbFileList))
 }

@@ -8,6 +8,7 @@ package index_apis
 
 import (
 	"gcnote/server/ability/search_engine"
+	"gcnote/server/cache"
 	"gcnote/server/config"
 	"gcnote/server/dto"
 	"gcnote/server/model"
@@ -70,6 +71,15 @@ func DeleteIndex(ctx *gin.Context) {
 	}
 
 	// 删除关联的KBFile记录
+	var kbFiles []model.KBFile
+	if err := tx.Where("index_id = ?", req.IndexId).Find(&kbFiles).Error; err != nil {
+		zap.S().Errorf("Failed to get KBFile records for index_id %v: %v", req.IndexId, err)
+		tx.Rollback()
+		ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
+		return
+	}
+
+	// 删除关联的KBFile记录
 	if err := tx.Where("index_id = ?", req.IndexId).Delete(&model.KBFile{}).Error; err != nil {
 		zap.S().Errorf("Failed to delete KBFile records for index_id %v: %v", req.IndexId, err)
 		tx.Rollback()
@@ -125,6 +135,35 @@ func DeleteIndex(ctx *gin.Context) {
 		zap.S().Errorf("Failed to commit transaction: %v", err)
 		ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
 		return
+	}
+
+	// 清理缓存
+	// 1. 删除index信息缓存
+	err = cache.DelIndexInfo(ctx, req.IndexId)
+	if err != nil {
+		zap.S().Errorf("Failed to delete index cache: %v", err)
+	}
+	// 2. 删除index的kb文件列表缓存
+	err = cache.DelIndexKBList(ctx, req.IndexId)
+	if err != nil {
+		zap.S().Errorf("Failed to delete index kb list cache: %v", err)
+	}
+	// 3. 删除每个kb文件的缓存
+	for _, kbFile := range kbFiles {
+		err = cache.DelKBInfo(ctx, kbFile.KBFileId)
+		if err != nil {
+			zap.S().Errorf("Failed to delete kb file cache: %v", err)
+		}
+	}
+	// 4. 刷新用户的index列表缓存
+	_, err = cache.RefreshUserIndexList(ctx, currentUserId)
+	if err != nil {
+		zap.S().Errorf("Failed to refresh user index list cache: %v", err)
+	}
+	// 5. 刷新用户的最近访问kb列表缓存
+	_, err = cache.RefreshRecentKBList(ctx, currentUserId)
+	if err != nil {
+		zap.S().Errorf("Failed to refresh user recent kb list cache: %v", err)
 	}
 
 	zap.S().Infof("Deleted index %v and its associated files for user %v", req.IndexId, currentUserId)

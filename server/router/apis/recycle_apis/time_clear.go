@@ -7,6 +7,7 @@
 package recycle_apis
 
 import (
+	"gcnote/server/cache"
 	"gcnote/server/config"
 	"gcnote/server/dto"
 	"gcnote/server/model"
@@ -50,6 +51,12 @@ func CleanupOldRecycleFiles(ctx *gin.Context) {
 			ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
 			return
 		}
+
+		// 删除每个文件的缓存
+		err = cache.DelRecycleInfo(ctx, file.KBFileId)
+		if err != nil {
+			zap.S().Errorf("Failed to delete recycle cache for file %s: %v", file.KBFileId, err)
+		}
 	}
 
 	// 删除数据库中的过期记录
@@ -58,6 +65,18 @@ func CleanupOldRecycleFiles(ctx *gin.Context) {
 		zap.S().Errorf("Failed to delete old recycle bin records: %v", err)
 		ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
 		return
+	}
+
+	// 刷新所有受影响用户的回收站列表缓存
+	affectedUsers := make(map[string]bool)
+	for _, file := range oldRecycleFiles {
+		affectedUsers[file.UserId] = true
+	}
+	for userId := range affectedUsers {
+		_, err = cache.RefreshUserRecycleList(ctx, userId)
+		if err != nil {
+			zap.S().Errorf("Failed to refresh user recycle list cache for user %s: %v", userId, err)
+		}
 	}
 
 	// 返回成功响应

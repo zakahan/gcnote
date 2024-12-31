@@ -7,11 +7,12 @@
 package recycle_apis
 
 import (
-	"gcnote/server/config"
+	"errors"
+	"gcnote/server/cache"
 	"gcnote/server/dto"
-	"gcnote/server/model"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 	"net/http"
 )
@@ -45,13 +46,21 @@ func ShowRecycleFiles(ctx *gin.Context) {
 		return
 	}
 
-	var recycleTable []model.Recycle
-	err := config.DB.Model(&model.Recycle{}).Where(
-		"user_id = ?", currentUserId).Find(&recycleTable).Error
-	if err != nil {
-		zap.S().Errorf("failed to find recycle table: %v", err)
+	// 从缓存获取用户的回收站文件列表
+	recycleList, err := cache.GetUserRecycleList(ctx, currentUserId)
+	if errors.Is(err, redis.Nil) {
+		// 缓存未命中，从数据库查询
+		recycleList, err = cache.RefreshUserRecycleList(ctx, currentUserId)
+		if err != nil {
+			zap.S().Errorf("Failed to get user recycle list: %v", err)
+			ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
+			return
+		}
+	} else if err != nil {
+		zap.S().Errorf("Failed to get user recycle list from cache: %v", err)
 		ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
 		return
 	}
-	ctx.JSON(http.StatusOK, dto.SuccessWithData(recycleTable))
+
+	ctx.JSON(http.StatusOK, dto.SuccessWithData(recycleList))
 }

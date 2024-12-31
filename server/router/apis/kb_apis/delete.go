@@ -7,13 +7,16 @@
 package kb_apis
 
 import (
+	"errors"
 	"gcnote/server/ability/search_engine"
+	"gcnote/server/cache"
 	"gcnote/server/config"
 	"gcnote/server/dto"
 	"gcnote/server/model"
 	"gcnote/server/router/wrench"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 	"net/http"
 	"os"
@@ -61,6 +64,48 @@ func RecycleKBFile(ctx *gin.Context) {
 		return
 	}
 
+	// 先从缓存验证index是否存在
+	index, err := cache.GetIndexInfo(ctx, req.IndexId)
+	if errors.Is(err, redis.Nil) {
+		// 缓存未命中，从数据库查询
+		index, err = cache.RefreshIndexInfo(ctx, req.IndexId)
+		if err != nil {
+			zap.S().Errorf("Failed to get index info: %v", err)
+			ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
+			return
+		}
+	} else if err != nil {
+		zap.S().Errorf("Failed to get index from cache: %v", err)
+		ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
+		return
+	}
+
+	if index == nil || index.IndexId == "" || index.UserId != currentUserId {
+		ctx.JSON(http.StatusNotFound, dto.Fail(dto.IndexNotExistErrCode))
+		return
+	}
+
+	// 从缓存验证kb文件是否存在
+	kbFile, err := cache.GetKBInfo(ctx, req.KBFileId)
+	if errors.Is(err, redis.Nil) {
+		// 缓存未命中，从数据库查询
+		kbFile, err = cache.RefreshKBInfo(ctx, req.KBFileId)
+		if err != nil {
+			zap.S().Errorf("Failed to get kb file info: %v", err)
+			ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
+			return
+		}
+	} else if err != nil {
+		zap.S().Errorf("Failed to get kb file from cache: %v", err)
+		ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
+		return
+	}
+
+	if kbFile == nil || kbFile.KBFileId == "" || kbFile.IndexId != req.IndexId {
+		ctx.JSON(http.StatusNotFound, dto.Fail(dto.KBFileNotExistErrCode))
+		return
+	}
+
 	// 回收文件
 	src := filepath.Join(config.PathCfg.KnowledgeBasePath, req.IndexId, req.KBFileId)
 	dst := filepath.Join(config.PathCfg.RecycleBinPath, req.IndexId, req.KBFileId)
@@ -93,7 +138,7 @@ func RecycleKBFile(ctx *gin.Context) {
 		KBFileId:      req.KBFileId,
 		KBFileName:    req.KBFileName,
 	}
-	kbFile := model.KBFile{
+	kbFileModel := model.KBFile{
 		IndexId:    req.IndexId,
 		KBFileId:   req.KBFileId,
 		KBFileName: req.KBFileName,
@@ -101,10 +146,10 @@ func RecycleKBFile(ctx *gin.Context) {
 
 	// 首先删除旧表
 	tx := config.DB.Begin()
-	tx.Model(&kbFile).Where(
+	tx.Model(&kbFileModel).Where(
 		"kb_file_id = ?",
-		kbFile.KBFileId,
-	).Delete(&kbFile)
+		kbFileModel.KBFileId,
+	).Delete(&kbFileModel)
 	if tx.Error != nil {
 		zap.S().Errorf("Delete kb_file name :%v err:%v", req.KBFileName, tx.Error)
 		tx.Rollback()
@@ -137,6 +182,29 @@ func RecycleKBFile(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
 		return
 	}
+
+	// 更新缓存
+	// 1. 删除kb文件信息缓存
+	err = cache.DelKBInfo(ctx, req.KBFileId)
+	if err != nil {
+		zap.S().Errorf("Failed to delete kb file cache: %v", err)
+	}
+	// 2. 刷新index的kb文件列表缓存
+	_, err = cache.RefreshIndexKBList(ctx, req.IndexId)
+	if err != nil {
+		zap.S().Errorf("Failed to refresh index kb list cache: %v", err)
+	}
+	// 3. 刷新用户的最近访问kb列表缓存
+	_, err = cache.RefreshRecentKBList(ctx, currentUserId)
+	if err != nil {
+		zap.S().Errorf("Failed to refresh user recent kb list cache: %v", err)
+	}
+	// 4. 刷新用户的回收站列表缓存
+	_, err = cache.RefreshUserRecycleList(ctx, currentUserId)
+	if err != nil {
+		zap.S().Errorf("Failed to refresh user recycle list cache: %v", err)
+	}
+
 	zap.S().Infof("Delete kb_file_name %v , user id : %v done.", req.KBFileName, currentUserId)
 	ctx.JSON(http.StatusOK, dto.Success())
 }

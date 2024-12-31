@@ -7,12 +7,15 @@
 package recycle_apis
 
 import (
+	"errors"
+	"gcnote/server/cache"
 	"gcnote/server/config"
 	"gcnote/server/dto"
 	"gcnote/server/model"
 	"gcnote/server/router/wrench"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 	"net/http"
 	"path/filepath"
@@ -48,11 +51,18 @@ func ClearUserRecycleBin(ctx *gin.Context) {
 		return
 	}
 
-	// 查询当前用户的回收站记录
-	var userRecycleFiles []model.Recycle
-	err := config.DB.Where("user_id = ?", currentUserId).Find(&userRecycleFiles).Error
-	if err != nil {
-		zap.S().Errorf("Failed to query recycle bin for user %s: %v", currentUserId, err)
+	// 从缓存获取用户的回收站文件列表
+	userRecycleFiles, err := cache.GetUserRecycleList(ctx, currentUserId)
+	if errors.Is(err, redis.Nil) {
+		// 缓存未命中，从数据库查询
+		userRecycleFiles, err = cache.RefreshUserRecycleList(ctx, currentUserId)
+		if err != nil {
+			zap.S().Errorf("Failed to get user recycle list: %v", err)
+			ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
+			return
+		}
+	} else if err != nil {
+		zap.S().Errorf("Failed to get user recycle list from cache: %v", err)
 		ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
 		return
 	}
@@ -65,6 +75,12 @@ func ClearUserRecycleBin(ctx *gin.Context) {
 			ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
 			return
 		}
+
+		// 删除每个文件的缓存
+		err = cache.DelRecycleInfo(ctx, file.KBFileId)
+		if err != nil {
+			zap.S().Errorf("Failed to delete recycle cache for file %s: %v", file.KBFileId, err)
+		}
 	}
 
 	// 删除数据库中的用户回收站记录
@@ -73,6 +89,12 @@ func ClearUserRecycleBin(ctx *gin.Context) {
 		zap.S().Errorf("Failed to delete recycle bin records for user %s: %v", currentUserId, err)
 		ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
 		return
+	}
+
+	// 刷新用户的回收站列表缓存
+	_, err = cache.RefreshUserRecycleList(ctx, currentUserId)
+	if err != nil {
+		zap.S().Errorf("Failed to refresh user recycle list cache: %v", err)
 	}
 
 	// 返回成功响应

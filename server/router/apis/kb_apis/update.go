@@ -8,14 +8,16 @@ package kb_apis
 
 import (
 	"bytes"
+	"errors"
 	"gcnote/server/ability/embeds"
 	"gcnote/server/ability/search_engine"
 	"gcnote/server/ability/splitter"
+	"gcnote/server/cache"
 	"gcnote/server/config"
 	"gcnote/server/dto"
-	"gcnote/server/model"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 	"io"
 	"net/http"
@@ -49,17 +51,45 @@ func UpdateKBFile(ctx *gin.Context) {
 		return
 	}
 
-	// 获取了indexId, kbFileId, UserId
-	// 查看这个是否存在
-	kbFile := model.KBFile{
-		UserId:   currentUserId,
-		IndexId:  indexId,
-		KBFileId: kbFileId,
+	// 先从缓存验证index是否存在
+	index, err := cache.GetIndexInfo(ctx, indexId)
+	if errors.Is(err, redis.Nil) {
+		// 缓存未命中，从数据库查询
+		index, err = cache.RefreshIndexInfo(ctx, indexId)
+		if err != nil {
+			zap.S().Errorf("Failed to get index info: %v", err)
+			ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
+			return
+		}
+	} else if err != nil {
+		zap.S().Errorf("Failed to get index from cache: %v", err)
+		ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
+		return
 	}
 
-	// 查询 KBFile 是否存在
-	if err := config.DB.Where(&kbFile).First(&kbFile).Error; err != nil {
-		ctx.JSON(http.StatusNotFound, dto.Fail(dto.RecordNotFoundErrCode))
+	if index == nil || index.IndexId == "" || index.UserId != currentUserId {
+		ctx.JSON(http.StatusNotFound, dto.Fail(dto.IndexNotExistErrCode))
+		return
+	}
+
+	// 从缓存验证kb文件是否存在
+	kbFile, err := cache.GetKBInfo(ctx, kbFileId)
+	if errors.Is(err, redis.Nil) {
+		// 缓存未命中，从数据库查询
+		kbFile, err = cache.RefreshKBInfo(ctx, kbFileId)
+		if err != nil {
+			zap.S().Errorf("Failed to get kb file info: %v", err)
+			ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
+			return
+		}
+	} else if err != nil {
+		zap.S().Errorf("Failed to get kb file from cache: %v", err)
+		ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
+		return
+	}
+
+	if kbFile == nil || kbFile.KBFileId == "" || kbFile.IndexId != indexId || kbFile.UserId != currentUserId {
+		ctx.JSON(http.StatusNotFound, dto.Fail(dto.KBFileNotExistErrCode))
 		return
 	}
 
@@ -136,6 +166,23 @@ func UpdateKBFile(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
 		return
 	}
-	ctx.JSON(http.StatusOK, dto.Success())
 
+	// 更新缓存
+	// 1. 刷新kb文件信息缓存
+	_, err = cache.RefreshKBInfo(ctx, kbFileId)
+	if err != nil {
+		zap.S().Errorf("Failed to refresh kb file cache: %v", err)
+	}
+	// 2. 刷新index的kb文件列表缓存
+	_, err = cache.RefreshIndexKBList(ctx, indexId)
+	if err != nil {
+		zap.S().Errorf("Failed to refresh index kb list cache: %v", err)
+	}
+	// 3. 刷新用户的最近访问kb列表缓存
+	_, err = cache.RefreshRecentKBList(ctx, currentUserId)
+	if err != nil {
+		zap.S().Errorf("Failed to refresh user recent kb list cache: %v", err)
+	}
+
+	ctx.JSON(http.StatusOK, dto.Success())
 }

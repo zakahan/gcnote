@@ -7,11 +7,14 @@
 package index_apis
 
 import (
+	"errors"
+	"gcnote/server/cache"
 	"gcnote/server/config"
 	"gcnote/server/dto"
 	"gcnote/server/model"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 	"net/http"
 )
@@ -43,19 +46,38 @@ func ShowIndexes(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, dto.Fail(dto.ParamsErrCode))
 		return
 	}
-	// 查看当前user_id 的所有表内信息，
+
+	// 先尝试从缓存获取
+	indexList, err := cache.GetUserIndexList(ctx, currentUserId)
+	if err == nil {
+		// 缓存命中，直接返回
+		ctx.JSON(http.StatusOK, dto.SuccessWithData(indexList))
+		return
+	}
+	if !errors.Is(err, redis.Nil) {
+		// 如果是其他错误，记录日志
+		zap.S().Errorf("Failed to get index list from cache: %v", err)
+	}
+
+	// 缓存未命中或发生错误，从数据库查询
 	indexModel := model.Index{}
 	tx := config.DB.Model(&indexModel).Where(
 		"user_id = ?",
 		currentUserId,
 	)
-	var indexList []model.Index
-	err := tx.Find(&indexList).Error
+	indexList = make([]model.Index, 0)
+	err = tx.Find(&indexList).Error
 	if err != nil {
 		zap.S().Errorf("failed to find index: %v", err)
 		ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
 		return
 	}
-	ctx.JSON(http.StatusOK, dto.SuccessWithData(indexList))
 
+	// 更新缓存
+	err = cache.SetUserIndexList(ctx, currentUserId, indexList)
+	if err != nil {
+		zap.S().Errorf("Failed to set index list cache: %v", err)
+	}
+
+	ctx.JSON(http.StatusOK, dto.SuccessWithData(indexList))
 }

@@ -8,13 +8,12 @@ package kb_apis
 
 import (
 	"errors"
-	"gcnote/server/config"
+	"gcnote/server/cache"
 	"gcnote/server/dto"
-	"gcnote/server/model"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
-	"gorm.io/gorm"
 	"net/http"
 )
 
@@ -51,13 +50,24 @@ func KBFileExist(ctx *gin.Context) {
 		return
 	}
 
-	var index model.Index
-	if err := config.DB.Where("index_id = ?", req.KBFileId).First(&index).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			ctx.JSON(http.StatusNotFound, dto.Fail(dto.KBFileNotExistErrCode))
-		} else {
+	// 从缓存验证kb文件是否存在
+	kbFile, err := cache.GetKBInfo(ctx, req.KBFileId)
+	if errors.Is(err, redis.Nil) {
+		// 缓存未命中，从数据库查询
+		kbFile, err = cache.RefreshKBInfo(ctx, req.KBFileId)
+		if err != nil {
+			zap.S().Errorf("Failed to get kb file info: %v", err)
 			ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
+			return
 		}
+	} else if err != nil {
+		zap.S().Errorf("Failed to get kb file from cache: %v", err)
+		ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
+		return
+	}
+
+	if kbFile == nil || kbFile.KBFileId == "" {
+		ctx.JSON(http.StatusNotFound, dto.Fail(dto.KBFileNotExistErrCode))
 		return
 	}
 

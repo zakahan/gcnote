@@ -12,12 +12,14 @@ import (
 	"gcnote/server/ability/embeds"
 	"gcnote/server/ability/search_engine"
 	"gcnote/server/ability/splitter"
+	"gcnote/server/cache"
 	"gcnote/server/config"
 	"gcnote/server/dto"
 	"gcnote/server/model"
 	"gcnote/server/router/wrench"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 	"mime/multipart"
@@ -64,18 +66,26 @@ func AddKBFile(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, dto.Fail(dto.ParamsErrCode))
 		return
 	}
-	// ------------------------------------
-	// 查看知识库是否存在
-	// fixme 这里要改为redis
-	indexSearch := model.Index{}
-	tx := config.DB.Where("index_id = ? AND user_id = ?", req.IndexId, currentUserId).First(&indexSearch)
-	if tx.Error != nil {
-		if errors.Is(tx.Error, gorm.ErrRecordNotFound) {
-			ctx.JSON(http.StatusConflict, dto.FailWithMessage(dto.IndexNotExistErrCode, "知识库 "+req.IndexId+" 不存在"))
+
+	// 先从缓存验证index是否存在
+	index, err := cache.GetIndexInfo(ctx, req.IndexId)
+	if errors.Is(err, redis.Nil) {
+		// 缓存未命中，从数据库查询
+		index, err = cache.RefreshIndexInfo(ctx, req.IndexId)
+		if err != nil {
+			zap.S().Errorf("Failed to get index info: %v", err)
+			ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
 			return
 		}
-		zap.S().Errorf("Search Error %v, err: %v", req.IndexId, tx.Error)
+	} else if err != nil {
+		zap.S().Errorf("Failed to get index from cache: %v", err)
 		ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
+		return
+	}
+
+	if index == nil || index.IndexId == "" || index.UserId != currentUserId {
+		ctx.JSON(http.StatusConflict, dto.FailWithMessage(dto.IndexNotExistErrCode,
+			"知识库"+req.IndexId+"不存在"))
 		return
 	}
 
@@ -120,7 +130,7 @@ func AddKBFile(ctx *gin.Context) {
 	}
 	// 检查是否存在同名的文件（kbFileId）
 	var kbFile = model.KBFile{}
-	tx = config.DB.Model(&KBFileNew).Where("kb_file_name = ? AND index_id = ?",
+	tx := config.DB.Model(&KBFileNew).Where("kb_file_name = ? AND index_id = ?",
 		KBFileNew.KBFileName, KBFileNew.IndexId).First(&kbFile)
 	if tx.Error != nil && !errors.Is(tx.Error, gorm.ErrRecordNotFound) {
 		zap.S().Debugf("kb_file_name: %s is exist", KBFileNew.KBFileName)
@@ -196,6 +206,23 @@ func AddKBFile(ctx *gin.Context) {
 		tx.Rollback()
 		ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
 		return
+	}
+
+	// 更新缓存
+	// 1. 设置kb文件信息缓存
+	err = cache.SetKBInfo(ctx, KBFileNew)
+	if err != nil {
+		zap.S().Errorf("Failed to set kb file cache: %v", err)
+	}
+	// 2. 刷新index的kb文件列表缓存
+	_, err = cache.RefreshIndexKBList(ctx, req.IndexId)
+	if err != nil {
+		zap.S().Errorf("Failed to refresh index kb list cache: %v", err)
+	}
+	// 3. 刷新用户的最近访问kb列表缓存
+	_, err = cache.RefreshRecentKBList(ctx, currentUserId)
+	if err != nil {
+		zap.S().Errorf("Failed to refresh user recent kb list cache: %v", err)
 	}
 
 	zap.S().Infof("Create file name %v done.", KBFileNew.KBFileName)

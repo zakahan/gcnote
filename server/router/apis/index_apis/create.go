@@ -9,6 +9,7 @@ package index_apis
 import (
 	"errors"
 	"gcnote/server/ability/search_engine"
+	"gcnote/server/cache"
 	"gcnote/server/config"
 	"gcnote/server/dto"
 	"gcnote/server/model"
@@ -163,6 +164,17 @@ func CreateIndex(ctx *gin.Context) {
 		zap.S().Errorf("Failed to commit transaction, err: %v", err)
 		ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
 		return
+	}
+
+	// 设置缓存
+	err = cache.SetIndexInfo(ctx, indexNew)
+	if err != nil {
+		zap.S().Errorf("Failed to set index cache, err: %v", err)
+	}
+	// 刷新用户的index列表缓存
+	_, err = cache.RefreshUserIndexList(ctx, currentUserId)
+	if err != nil {
+		zap.S().Errorf("Failed to refresh user index list cache, err: %v", err)
 	}
 
 	zap.S().Infof("Create index %v done.", indexNew.IndexName)

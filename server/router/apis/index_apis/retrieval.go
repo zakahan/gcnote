@@ -7,13 +7,16 @@
 package index_apis
 
 import (
+	"errors"
 	"gcnote/server/ability/document"
 	"gcnote/server/ability/embeds"
 	"gcnote/server/ability/search_engine"
+	"gcnote/server/cache"
 	"gcnote/server/config"
 	"gcnote/server/dto"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 	"net/http"
 )
@@ -66,6 +69,27 @@ func RetrievalIndex(ctx *gin.Context) {
 	if currentUserId == "" {
 		zap.S().Debugf("currentUserId is empty")
 		ctx.JSON(http.StatusUnauthorized, dto.Fail(dto.ParamsErrCode))
+		return
+	}
+
+	// 验证index是否存在
+	index, err := cache.GetIndexInfo(ctx, req.IndexId)
+	if errors.Is(err, redis.Nil) {
+		// 缓存未命中，从数据库查询
+		index, err = cache.RefreshIndexInfo(ctx, req.IndexId)
+		if err != nil {
+			zap.S().Errorf("Failed to get index info: %v", err)
+			ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
+			return
+		}
+	} else if err != nil {
+		zap.S().Errorf("Failed to get index from cache: %v", err)
+		ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
+		return
+	}
+
+	if index == nil || index.IndexId == "" {
+		ctx.JSON(http.StatusNotFound, dto.Fail(dto.IndexNotExistErrCode))
 		return
 	}
 

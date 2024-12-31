@@ -8,12 +8,14 @@ package recycle_apis
 
 import (
 	"errors"
+	"gcnote/server/cache"
 	"gcnote/server/config"
 	"gcnote/server/dto"
 	"gcnote/server/model"
 	"gcnote/server/router/wrench"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 	"net/http"
@@ -61,6 +63,27 @@ func DeleteRecycleFile(ctx *gin.Context) {
 		return
 	}
 
+	// 从缓存验证回收站文件是否存在
+	recycle, err := cache.GetRecycleInfo(ctx, req.KBFileId)
+	if errors.Is(err, redis.Nil) {
+		// 缓存未命中，从数据库查询
+		recycle, err = cache.RefreshRecycleInfo(ctx, req.KBFileId)
+		if err != nil {
+			zap.S().Errorf("Failed to get recycle info: %v", err)
+			ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
+			return
+		}
+	} else if err != nil {
+		zap.S().Errorf("Failed to get recycle from cache: %v", err)
+		ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
+		return
+	}
+
+	if recycle == nil || recycle.KBFileId == "" || recycle.UserId != currentUserId {
+		ctx.JSON(http.StatusNotFound, dto.Fail(dto.RecycleFileNotExistErrCode))
+		return
+	}
+
 	// 开始删除操作
 	var recycleFile model.Recycle
 	tx := config.DB.Where("kb_file_id = ?", req.KBFileId).Delete(&recycleFile)
@@ -92,6 +115,17 @@ func DeleteRecycleFile(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, dto.Success())
+	// 更新缓存
+	// 1. 删除回收站文件信息缓存
+	err = cache.DelRecycleInfo(ctx, req.KBFileId)
+	if err != nil {
+		zap.S().Errorf("Failed to delete recycle cache: %v", err)
+	}
+	// 2. 刷新用户的回收站列表缓存
+	_, err = cache.RefreshUserRecycleList(ctx, currentUserId)
+	if err != nil {
+		zap.S().Errorf("Failed to refresh user recycle list cache: %v", err)
+	}
 
+	ctx.JSON(http.StatusOK, dto.Success())
 }

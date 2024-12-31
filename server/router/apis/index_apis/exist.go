@@ -8,11 +8,13 @@ package index_apis
 
 import (
 	"errors"
+	"gcnote/server/cache"
 	"gcnote/server/config"
 	"gcnote/server/dto"
 	"gcnote/server/model"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 	"net/http"
@@ -51,14 +53,33 @@ func IndexExist(ctx *gin.Context) {
 		return
 	}
 
-	var index model.Index
-	if err := config.DB.Where("index_id = ?", req.IndexId).First(&index).Error; err != nil {
+	// 先尝试从缓存获取
+	_, err = cache.GetIndexInfo(ctx, req.IndexId)
+	if err == nil {
+		// 缓存命中，直接返回
+		ctx.JSON(http.StatusOK, dto.Success())
+		return
+	}
+	if !errors.Is(err, redis.Nil) {
+		// 如果是其他错误，记录日志
+		zap.S().Errorf("Failed to get index from cache: %v", err)
+	}
+
+	// 缓存未命中或发生错误，从数据库查询
+	var dbIndex model.Index
+	if err := config.DB.Where("index_id = ?", req.IndexId).First(&dbIndex).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			ctx.JSON(http.StatusNotFound, dto.Fail(dto.IndexNotExistErrCode))
 		} else {
 			ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
 		}
 		return
+	}
+
+	// 更新缓存
+	err = cache.SetIndexInfo(ctx, dbIndex)
+	if err != nil {
+		zap.S().Errorf("Failed to set index cache: %v", err)
 	}
 
 	ctx.JSON(http.StatusOK, dto.Success())

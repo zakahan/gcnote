@@ -8,6 +8,7 @@ package index_apis
 
 import (
 	"errors"
+	"gcnote/server/cache"
 	"gcnote/server/config"
 	"gcnote/server/dto"
 	"gcnote/server/model"
@@ -98,6 +99,18 @@ func RenameIndex(ctx *gin.Context) {
 		zap.S().Errorf("Unexpected error while renaming index: %v", tx.Error)
 		ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
 		return
+	}
+
+	// 更新缓存
+	// 1. 刷新index信息缓存
+	_, err := cache.RefreshIndexInfo(ctx, req.IndexId)
+	if err != nil {
+		zap.S().Errorf("Failed to refresh index cache: %v", err)
+	}
+	// 2. 刷新用户的index列表缓存
+	_, err = cache.RefreshUserIndexList(ctx, currentUserId)
+	if err != nil {
+		zap.S().Errorf("Failed to refresh user index list cache: %v", err)
 	}
 
 	zap.S().Infof("Successfully renamed index %v to %v for user %v", req.IndexId, req.DestIndexName, currentUserId)
