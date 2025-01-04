@@ -11,14 +11,16 @@ import (
 	"gcnote/server/router/apis/index_apis"
 	"gcnote/server/router/apis/kb_apis"
 	"gcnote/server/router/apis/recycle_apis"
+	"gcnote/server/router/apis/share_apis"
 	"gcnote/server/router/apis/user_apis"
 	"gcnote/server/router/apis/utils_apis"
 	"gcnote/server/router/middleware"
+	"time"
+
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-	"time"
 )
 
 func InitRouter() *gin.Engine {
@@ -72,6 +74,9 @@ func InitRouter() *gin.Engine {
 	group3.GET("/clear", recycle_apis.ClearUserRecycleBin)
 	group3.POST("/clearup", recycle_apis.CleanupOldRecycleFiles)
 	group3.POST("/restore", recycle_apis.RestoreRecycleFile)
+
+	// 实时协作
+	route.GET("/share/ws", share_apis.HandleWebSocket)
 
 	route.GET("/images/:index_id/:kb_file_id/:image_name", utils_apis.GetImage)
 	route.POST("/images/upload", utils_apis.UploadImage)
