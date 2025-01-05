@@ -52,6 +52,9 @@ const (
 	// 回收站业务错误码 04
 	//RecycleFileNameErrCode     Code = 40400
 	RecycleFileNotExistErrCode Code = 40401
+	// 分享业务错误码 05
+	ShareFileNotExistErrCode Code = 40501
+	ShareAlreadyExistErrCode Code = 40502
 )
 
 // 系统错误 5xxxx
@@ -83,7 +86,10 @@ func init() {
 	message[KBFileNotExistErrCode] = "当前文档不存在"
 	message[KBFileAddFileErrCode] = "当前文件导入时发生错误"
 	// 404xx 回收站错误
-
+	message[RecycleFileNotExistErrCode] = "回收的文件不存在"
+	// 405xx 分享业务错误码
+	message[ShareFileNotExistErrCode] = "分享文件不存在"
+	message[ShareAlreadyExistErrCode] = "分享条目已经存在"
 	// 5xxxx错误message
 	message[InternalErrCode] = "系统内部发生错误"
 

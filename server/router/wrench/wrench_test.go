@@ -21,3 +21,8 @@ func TestValidString(t *testing.T) {
 	x = ValidateIndexName("知识内容")
 	fmt.Println(x)
 }
+
+func TestRand(t *testing.T) {
+	x := RandStringBytes(16)
+	fmt.Println(x)
+}

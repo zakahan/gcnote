@@ -78,6 +78,13 @@ func InitRouter() *gin.Engine {
 	// 实时协作
 	route.GET("/share/ws", share_apis.HandleWebSocket)
 
+	// 分享文件相关
+	group4 := route.Group("share").Use(middleware.VerifyJWT())
+	group4.POST("/create", share_apis.CreateShareFile)
+	group4.POST("/delete", share_apis.DeleteShareFile)
+	group4.GET("/exist", share_apis.CheckShareFileExist)
+	group4.GET("/info", share_apis.ListShareFiles)
+
 	route.GET("/images/:index_id/:kb_file_id/:image_name", utils_apis.GetImage)
 	route.POST("/images/upload", utils_apis.UploadImage)
 	// swagger
