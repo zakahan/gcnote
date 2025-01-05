@@ -84,6 +84,7 @@ func InitRouter() *gin.Engine {
 	group4.POST("/delete", share_apis.DeleteShareFile)
 	group4.GET("/exist", share_apis.CheckShareFileExist)
 	group4.GET("/info", share_apis.ListShareFiles)
+	group4.POST("/read", share_apis.ReadFile)
 
 	route.GET("/images/:index_id/:kb_file_id/:image_name", utils_apis.GetImage)
 	route.POST("/images/upload", utils_apis.UploadImage)

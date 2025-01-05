@@ -58,3 +58,14 @@ type ShareFileListResponse struct {
 	Total int64           `json:"total"`
 	List  []ShareFileInfo `json:"list"`
 }
+
+type ShareFileReadRequest struct {
+	ShareFileId string `json:"share_file_id" binding:"required"`
+	//ShareFileName string `json:"share_file_name" binding:"required"`
+	Password string `json:"password" binding:"required"`
+}
+
+type ShareReadResponse struct {
+	Title   string `json:"title"`
+	Content string `json:"content"`
+}

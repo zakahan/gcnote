@@ -55,6 +55,7 @@ const (
 	// 分享业务错误码 05
 	ShareFileNotExistErrCode Code = 40501
 	ShareAlreadyExistErrCode Code = 40502
+	SharePasswordErrCode     Code = 40503
 )
 
 // 系统错误 5xxxx
@@ -90,6 +91,7 @@ func init() {
 	// 405xx 分享业务错误码
 	message[ShareFileNotExistErrCode] = "分享文件不存在"
 	message[ShareAlreadyExistErrCode] = "分享条目已经存在"
+	message[SharePasswordErrCode] = "密码错误"
 	// 5xxxx错误message
 	message[InternalErrCode] = "系统内部发生错误"
 
