@@ -86,12 +86,14 @@ func (manager *WebSocketManager) broadcastOperation(op dto.Operation) {
 }
 
 // handleWebSocketConnection handles individual WebSocket connections
-func handleWebSocketConnection(manager *WebSocketManager, conn *websocket.Conn) {
+func handleWebSocketConnection(manager *WebSocketManager, conn *websocket.Conn, documentId, clientId string) {
+
 	defer conn.Close()
 
 	manager.addConnection(conn)
 	zap.S().Infof("New WebSocket connection: %v", conn.RemoteAddr())
-
+	zap.S().Debugf("建立连接documentId %v", documentId)
+	zap.S().Debugf("建立连接clientId %v", clientId)
 	for {
 		_, msg, err := conn.ReadMessage()
 		if err != nil {
@@ -135,6 +137,9 @@ func (manager *WebSocketManager) applyOperations() {
 // @Failure 400 {object} dto.BaseResponse "Bad Request"
 // @Router /share/ws [get]
 func HandleWebSocket(c *gin.Context) {
+	documentId := c.Param("documentId")
+	clientId := c.Query("clientId")
+
 	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
 		zap.S().Errorf("Failed to upgrade connection: %v", err)
@@ -142,5 +147,5 @@ func HandleWebSocket(c *gin.Context) {
 		return
 	}
 
-	go handleWebSocketConnection(globalManager, conn)
+	go handleWebSocketConnection(globalManager, conn, documentId, clientId)
 }

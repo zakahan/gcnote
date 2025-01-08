@@ -28,7 +28,7 @@ func InitRouter() *gin.Engine {
 	gin.SetMode(gin.DebugMode)
 	route := gin.Default()
 	httpCfg := cors.Config{
-		AllowOrigins:     []string{"http://localhost:8080"}, // 允许的前端地址
+		AllowOrigins:     []string{"http://localhost:8080", "http://localhost:8090"}, // 允许的前端地址
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "token"},
 		ExposeHeaders:    []string{"Content-Length"},
@@ -76,7 +76,7 @@ func InitRouter() *gin.Engine {
 	group3.POST("/restore", recycle_apis.RestoreRecycleFile)
 
 	// 实时协作
-	route.GET("/share/ws", share_apis.HandleWebSocket)
+	route.GET("/share/ws/:documentId", share_apis.HandleWebSocket)
 
 	// 分享文件相关
 	group4 := route.Group("share").Use(middleware.VerifyJWT())

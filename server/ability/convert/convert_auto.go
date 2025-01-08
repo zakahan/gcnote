@@ -11,6 +11,7 @@ import (
 	"gcnote/server/ability/convert/convert_docx"
 	"gcnote/server/ability/convert/convert_html"
 	"gcnote/server/ability/convert/convert_md"
+	"gcnote/server/ability/convert/convert_pdf"
 	"gcnote/server/ability/convert/convert_txt"
 	"os"
 	"path/filepath"
@@ -21,7 +22,7 @@ func AutoConvert(documentPath string, outputDir string, suffix string) (string, 
 		返回值：mdPath, mdString, err
 	*/
 	// 首先根据输入的suffix来处理
-	var suffixList = []string{".docx", ".html", ".txt", ".md"}
+	var suffixList = []string{".docx", ".html", ".txt", ".md", ".pdf"}
 	// 如果suffix不为空，直接匹配是否在suffixList里，否则需要判断
 	if suffix == "" {
 		//suffix :=
@@ -42,6 +43,8 @@ func AutoConvert(documentPath string, outputDir string, suffix string) (string, 
 	}
 	if suffix == ".docx" {
 		return convert_docx.DocxConvert(documentPath, outputDir)
+	} else if suffix == ".pdf" {
+		return convert_pdf.PdfConvert(documentPath, outputDir)
 	} else if suffix == ".html" {
 		// 在outputDir里创建一个名为images的文件夹
 		err = os.Mkdir(filepath.Join(outputDir, "images"), os.ModePerm)
