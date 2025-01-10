@@ -8,6 +8,7 @@ package wrench
 
 import (
 	"fmt"
+	"go.uber.org/zap"
 	"io"
 	"os"
 	"path/filepath"
@@ -29,13 +30,23 @@ func CopyFile(src, dst string) error {
 	if err != nil {
 		return err
 	}
-	defer sourceFile.Close()
+	defer func(sourceFile *os.File) {
+		err := sourceFile.Close()
+		if err != nil {
+			zap.S().Errorf("无法关闭文件：%v", err)
+		}
+	}(sourceFile)
 
 	destinationFile, err := os.Create(dst)
 	if err != nil {
 		return err
 	}
-	defer destinationFile.Close()
+	defer func(destinationFile *os.File) {
+		err := destinationFile.Close()
+		if err != nil {
+			zap.S().Errorf("无法关闭文件：%v", err)
+		}
+	}(destinationFile)
 
 	_, err = io.Copy(destinationFile, sourceFile)
 	if err != nil {

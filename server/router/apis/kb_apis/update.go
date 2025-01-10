@@ -20,6 +20,7 @@ import (
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 	"io"
+	"mime/multipart"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -113,7 +114,12 @@ func UpdateKBFile(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
 		return
 	}
-	defer src.Close()
+	defer func(src multipart.File) {
+		err = src.Close()
+		if err != nil {
+			zap.S().Errorf("Close File Error Error: %v\n", err)
+		}
+	}(src)
 	buffer := new(bytes.Buffer)
 	_, err = io.Copy(buffer, src)
 	if err != nil {

@@ -118,7 +118,7 @@ func DeleteIndex(ctx *gin.Context) {
 		return
 	}
 	if code != 200 {
-		zap.S().Errorf("the index is not exist, err: %v")
+		zap.S().Errorf("the index is not exist,")
 		ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
 		return
 	}

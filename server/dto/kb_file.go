@@ -25,7 +25,7 @@ type KBFileRequest struct {
 	KBFileId string `json:"kb_file_id" binding:"required"`
 }
 
-// 都用form标签
+// KBFileAddRequest 都用form标签
 type KBFileAddRequest struct {
 	IndexId string `form:"index_id" binding:"required"`
 	//KBFileName string                `form:"kb_file_name" binding:"required"`

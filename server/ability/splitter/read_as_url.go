@@ -9,6 +9,7 @@ package splitter
 import (
 	"fmt"
 	"gcnote/server/config"
+	"go.uber.org/zap"
 	"io"
 	"os"
 	"path/filepath"
@@ -130,14 +131,24 @@ func change(imageName, RealIndexId, realKBFileId string) error {
 	if err != nil {
 		return err
 	}
-	defer sourceFile.Close()
+	defer func(sourceFile *os.File) {
+		err := sourceFile.Close()
+		if err != nil {
+			zap.S().Errorf("无法关闭文件：%v", err)
+		}
+	}(sourceFile)
 
 	// 创建目标文件
 	targetFile, err := os.Create(targetImagePath)
 	if err != nil {
 		return err
 	}
-	defer targetFile.Close()
+	defer func(targetFile *os.File) {
+		err := targetFile.Close()
+		if err != nil {
+			zap.S().Errorf("无法关闭文件：%v", err)
+		}
+	}(targetFile)
 
 	// 复制文件内容
 	_, err = io.Copy(targetFile, sourceFile)

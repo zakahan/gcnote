@@ -26,7 +26,12 @@ func MdConvert(documentPath string, outputDir string) (string, string, error) {
 		log.Fatalf("无法打开文件：%v", err)
 		return "", "", err
 	}
-	defer file.Close()
+	defer func(file *os.File) {
+		err := file.Close()
+		if err != nil {
+
+		}
+	}(file)
 	// 读取文件
 	data, err := io.ReadAll(file)
 	if err != nil {

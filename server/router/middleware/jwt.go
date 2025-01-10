@@ -73,7 +73,7 @@ func NewJWT() *JWTInfo {
 	}
 }
 
-// 签发 JWT
+// GenerateJWT 签发 JWT
 func (j *JWTInfo) GenerateJWT(claims jwt.MapClaims) (string, error) {
 	// 解析 RSA 私钥
 	rsaPrivateKey, err := jwt.ParseRSAPrivateKeyFromPEM(j.privateKey)
@@ -92,7 +92,7 @@ func (j *JWTInfo) GenerateJWT(claims jwt.MapClaims) (string, error) {
 	return tokenString, nil
 }
 
-// 解析 JWT
+// ParseToken 解析 JWT
 func (j *JWTInfo) ParseToken(tokenString string) (jwt.MapClaims, error) {
 	// 解析 RSA 公钥
 	rsaPublicKey, err := jwt.ParseRSAPublicKeyFromPEM(j.publicKey)
@@ -121,7 +121,7 @@ func (j *JWTInfo) ParseToken(tokenString string) (jwt.MapClaims, error) {
 	}
 }
 
-// 验证 JWT
+// VerifyJWT 验证 JWT
 func VerifyJWT() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		for name, headers := range ctx.Request.Header {

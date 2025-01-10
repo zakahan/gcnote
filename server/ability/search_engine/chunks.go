@@ -13,6 +13,8 @@ import (
 	"fmt"
 	"gcnote/server/ability/document"
 	"github.com/elastic/go-elasticsearch/v8"
+	"go.uber.org/zap"
+	"io"
 	"strings"
 )
 
@@ -67,7 +69,12 @@ func DeleteByTerm(client *elasticsearch.Client, indexName string, key string, va
 	if err != nil {
 		return err
 	}
-	defer res.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			zap.S().Error("close error %v", err)
+		}
+	}(res.Body)
 
 	// 检查响应状态码
 	if res.IsError() {

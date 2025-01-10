@@ -28,7 +28,7 @@ func InitRouter() *gin.Engine {
 	gin.SetMode(gin.DebugMode)
 	route := gin.Default()
 	httpCfg := cors.Config{
-		AllowOrigins:     []string{"http://localhost:8080", "http://localhost:8090"}, // 允许的前端地址
+		AllowOrigins:     []string{"http://localhost:8080", "http://localhost:8090"}, // 允许的前端地址 "ws://localhost:8086"
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "token"},
 		ExposeHeaders:    []string{"Content-Length"},
@@ -75,9 +75,6 @@ func InitRouter() *gin.Engine {
 	group3.POST("/clearup", recycle_apis.CleanupOldRecycleFiles)
 	group3.POST("/restore", recycle_apis.RestoreRecycleFile)
 
-	// 实时协作
-	route.GET("/share/ws/:documentId", share_apis.HandleWebSocket)
-
 	// 分享文件相关
 	group4 := route.Group("share").Use(middleware.VerifyJWT())
 	group4.POST("/create", share_apis.CreateShareFile)
@@ -85,6 +82,8 @@ func InitRouter() *gin.Engine {
 	group4.GET("/exist", share_apis.CheckShareFileExist)
 	group4.GET("/info", share_apis.ListShareFiles)
 	group4.POST("/read", share_apis.ReadFile)
+	// 实时协作
+	route.GET("/share/ws", share_apis.HandleWebSocket)
 
 	route.GET("/images/:index_id/:kb_file_id/:image_name", utils_apis.GetImage)
 	route.POST("/images/upload", utils_apis.UploadImage)

@@ -7,8 +7,8 @@
 package share_apis
 
 import (
-	"encoding/json"
-	"gcnote/server/dto"
+	"bytes"
+	"fmt"
 	"net/http"
 	"sync"
 
@@ -17,135 +17,219 @@ import (
 	"go.uber.org/zap"
 )
 
-// WebSocketManager manages all connected clients
-type WebSocketManager struct {
-	clients    map[*websocket.Conn]bool
-	operations []dto.Operation
-	mu         sync.Mutex
+const (
+	messageSync           = 0
+	messageAwareness      = 1
+	messageAuth           = 2
+	messageQueryAwareness = 3
+)
+
+// Room represents a collaborative editing room
+type Room struct {
+	ID        string
+	Clients   map[*Client]bool
+	State     []byte // Document state
+	mu        sync.RWMutex
+	Broadcast chan []byte
+}
+
+// Client represents a connected client
+type Client struct {
+	ID   string
+	Room *Room
+	Conn *websocket.Conn
+	Send chan []byte
 }
 
 var (
-	// Global operation queue
-	operationQueue []dto.Operation
-	// WebSocket upgrader
+	// Configure the upgrader
 	upgrader = websocket.Upgrader{
+		ReadBufferSize:  1024,
+		WriteBufferSize: 1024,
 		CheckOrigin: func(r *http.Request) bool {
-			return true // Allow all origins in development, should be restricted in production
+			return true // Allow all origins for now
 		},
 	}
-	// Global manager instance
-	globalManager = newWebSocketManager()
+
+	// Global rooms management
+	rooms      = make(map[string]*Room)
+	roomsMutex sync.RWMutex
 )
 
-// newWebSocketManager creates a new WebSocket manager
-func newWebSocketManager() *WebSocketManager {
-	return &WebSocketManager{
-		clients:    make(map[*websocket.Conn]bool),
-		operations: make([]dto.Operation, 0),
+// readVarUint reads a variable-length unsigned integer from a byte slice
+func readVarUint(data []byte) (uint64, int, error) {
+	var x uint64
+	var s uint
+	for i, b := range data {
+		if b < 0x80 {
+			if i > 9 || i == 9 && b > 1 {
+				return 0, 0, fmt.Errorf("overflow")
+			}
+			return x | uint64(b)<<s, i + 1, nil
+		}
+		x |= uint64(b&0x7f) << s
+		s += 7
+	}
+	return 0, 0, fmt.Errorf("buffer too small")
+}
+
+// writeVarUint writes a variable-length unsigned integer to a buffer
+func writeVarUint(buf *bytes.Buffer, x uint64) {
+	for x >= 0x80 {
+		buf.WriteByte(byte(x) | 0x80)
+		x >>= 7
+	}
+	buf.WriteByte(byte(x))
+}
+
+// createRoom creates a new room if it doesn't exist
+func createRoom(roomID string) *Room {
+	roomsMutex.Lock()
+	defer roomsMutex.Unlock()
+
+	if room, exists := rooms[roomID]; exists {
+		return room
+	}
+
+	room := &Room{
+		ID:        roomID,
+		Clients:   make(map[*Client]bool),
+		State:     make([]byte, 0),
+		Broadcast: make(chan []byte),
+	}
+	rooms[roomID] = room
+
+	// Start room's broadcast handler
+	go room.run()
+
+	return room
+}
+
+// run handles broadcasting messages to all clients in the room
+func (r *Room) run() {
+	for {
+		message := <-r.Broadcast
+		r.mu.RLock()
+		for client := range r.Clients {
+			select {
+			case client.Send <- message:
+			default:
+				close(client.Send)
+				delete(r.Clients, client)
+			}
+		}
+		r.mu.RUnlock()
 	}
 }
 
-// addConnection adds a WebSocket connection to the manager
-func (manager *WebSocketManager) addConnection(conn *websocket.Conn) {
-	manager.mu.Lock()
-	defer manager.mu.Unlock()
-	manager.clients[conn] = true
-}
-
-// removeConnection removes a WebSocket connection from the manager
-func (manager *WebSocketManager) removeConnection(conn *websocket.Conn) {
-	manager.mu.Lock()
-	defer manager.mu.Unlock()
-	delete(manager.clients, conn)
-}
-
-// broadcastOperation broadcasts an operation to all clients
-func (manager *WebSocketManager) broadcastOperation(op dto.Operation) {
-	manager.mu.Lock()
-	defer manager.mu.Unlock()
-
-	// Add operation to queue
-	operationQueue = append(operationQueue, op)
-
-	// Marshal operation to JSON
-	opJson, err := json.Marshal(op)
-	if err != nil {
-		zap.S().Errorf("Error marshalling operation: %v", err)
-		return
-	}
-
-	// Broadcast to all clients
-	for conn := range manager.clients {
-		err := conn.WriteMessage(websocket.TextMessage, opJson)
+// readPump pumps messages from the websocket connection to the room
+func (c *Client) readPump() {
+	defer func() {
+		c.Room.mu.Lock()
+		delete(c.Room.Clients, c)
+		c.Room.mu.Unlock()
+		err := c.Conn.Close()
 		if err != nil {
-			zap.S().Errorf("Error sending message to %v: %v", conn.RemoteAddr(), err)
-			conn.Close()
-			delete(manager.clients, conn)
+			return
+		}
+	}()
+
+	for {
+		messageType, message, err := c.Conn.ReadMessage()
+		if err != nil {
+			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
+				zap.S().Errorf("error: %v", err)
+			}
+			break
+		}
+
+		if messageType == websocket.BinaryMessage {
+			// Read message type (varint)
+			msgType, _, err := readVarUint(message)
+			if err != nil {
+				zap.S().Errorf("error reading message type: %v", err)
+				continue
+			}
+
+			// Handle different message types
+			switch msgType {
+			case messageSync:
+				// Store sync message in room state
+				c.Room.mu.Lock()
+				c.Room.State = message
+				c.Room.mu.Unlock()
+			case messageAwareness:
+				// Just broadcast awareness updates
+			case messageAuth:
+				// Handle auth if needed
+			case messageQueryAwareness:
+				// Handle awareness query
+			}
+
+			// Broadcast the message to all clients in the room
+			c.Room.Broadcast <- message
 		}
 	}
 }
 
-// handleWebSocketConnection handles individual WebSocket connections
-func handleWebSocketConnection(manager *WebSocketManager, conn *websocket.Conn, documentId, clientId string) {
-
-	defer conn.Close()
-
-	manager.addConnection(conn)
-	zap.S().Infof("New WebSocket connection: %v", conn.RemoteAddr())
-	zap.S().Debugf("建立连接documentId %v", documentId)
-	zap.S().Debugf("建立连接clientId %v", clientId)
-	for {
-		_, msg, err := conn.ReadMessage()
+// writePump pumps messages from the room to the websocket connection
+func (c *Client) writePump() {
+	defer func() {
+		err := c.Conn.Close()
 		if err != nil {
-			zap.S().Errorf("Error reading message: %v", err)
-			manager.removeConnection(conn)
+			return
+		}
+	}()
+
+	for {
+		message, ok := <-c.Send
+		if !ok {
+			err := c.Conn.WriteMessage(websocket.CloseMessage, []byte{})
+			if err != nil {
+				return
+			}
 			return
 		}
 
-		var op dto.Operation
-		if err := json.Unmarshal(msg, &op); err != nil {
-			zap.S().Errorf("Error unmarshaling operation: %v", err)
-			continue
+		if err := c.Conn.WriteMessage(websocket.BinaryMessage, message); err != nil {
+			return
 		}
-
-		operationQueue = append(operationQueue, op)
-		manager.broadcastOperation(op)
-		manager.applyOperations()
 	}
 }
 
-// applyOperations processes the operation queue
-func (manager *WebSocketManager) applyOperations() {
-	manager.mu.Lock()
-	defer manager.mu.Unlock()
-
-	for _, op := range operationQueue {
-		zap.S().Infof("Applying operation: %+v", op)
-		// Here you can implement operation transformation logic if needed
-	}
-	operationQueue = []dto.Operation{}
-}
-
-// HandleWebSocket
-// @Summary WebSocket connection endpoint
-// @Description Establishes a WebSocket connection for real-time collaboration
-// @ID handle-websocket
-// @Tags share
-// @Accept json
-// @Produce json
-// @Success 101 {string} string "Switching Protocols to WebSocket"
-// @Failure 400 {object} dto.BaseResponse "Bad Request"
-// @Router /share/ws [get]
+// HandleWebSocket handles websocket requests from clients
 func HandleWebSocket(c *gin.Context) {
-	documentId := c.Param("documentId")
-	clientId := c.Query("clientId")
+	roomID := c.Query("room")
+	if roomID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "room ID is required"})
+		return
+	}
 
 	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
 		zap.S().Errorf("Failed to upgrade connection: %v", err)
-		c.JSON(http.StatusBadRequest, dto.Fail(dto.InternalErrCode))
 		return
 	}
 
-	go handleWebSocketConnection(globalManager, conn, documentId, clientId)
+	room := createRoom(roomID)
+	client := &Client{
+		ID:   fmt.Sprintf("%p", conn),
+		Room: room,
+		Conn: conn,
+		Send: make(chan []byte, 256),
+	}
+
+	room.mu.Lock()
+	room.Clients[client] = true
+	room.mu.Unlock()
+
+	// Send current document state to new client
+	if len(room.State) > 0 {
+		client.Send <- room.State
+	}
+
+	// Allow collection of memory referenced by the caller by doing all work in
+	// new goroutines.
+	go client.writePump()
+	go client.readPump()
 }

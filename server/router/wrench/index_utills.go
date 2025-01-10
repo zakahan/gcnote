@@ -8,7 +8,7 @@ package wrench
 
 import "regexp"
 
-// ？好像没啥用，因为index name应该是个uuid
+// ValidateIndexName ？好像没啥用，因为index name应该是个uuid
 func ValidateIndexName(indexName string) bool {
 	// 不允许出现以下符号，这些符号可能被用来作为indexName和uuid的间隔的
 	//re := regexp.MustCompile(`[^a-z0-9-_]`)

@@ -27,8 +27,8 @@ func PdfConvert(documentPath string, outputDir string) (string, string, error) {
 	pythonScript := filepath.Join(config.PathCfg.BaseProjectPath, "component", "pdf_convert_ability", "main.py")
 
 	// 构建命令 与python环境参数
-	python_exe := os.Getenv("GC_NOTE_PYTHON_EXE")
-	cmd := exec.Command(python_exe, pythonScript, "--pdf_path", documentPath, "--output_dir", outputDir)
+	pythonExe := os.Getenv("GC_NOTE_PYTHON_EXE")
+	cmd := exec.Command(pythonExe, pythonScript, "--pdf_path", documentPath, "--output_dir", outputDir)
 
 	// 获取标准输出
 	output, err := cmd.Output()
