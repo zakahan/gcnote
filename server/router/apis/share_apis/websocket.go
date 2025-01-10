@@ -199,7 +199,7 @@ func (c *Client) writePump() {
 
 // HandleWebSocket handles websocket requests from clients
 func HandleWebSocket(c *gin.Context) {
-	roomID := c.Query("room")
+	roomID := c.Param("room")
 	if roomID == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "room ID is required"})
 		return
