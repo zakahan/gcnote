@@ -91,12 +91,12 @@ func createRoom(roomID string) *Room {
 	if room, exists := rooms[roomID]; exists {
 		return room
 	}
-
-	initialState, err := readInitialContent(roomID)
+	content, _, err := readInitialContent(roomID)
+	zap.S().Infof(content)
 	if err != nil {
 		return nil
 	}
-	//initialState := initializeYDoc(initialContent)
+	initialState := initializeYDoc(content)
 
 	room := &Room{
 		ID:        roomID,

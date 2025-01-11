@@ -9,6 +9,7 @@ package share_apis
 import (
 	"bytes"
 	"fmt"
+	"gcnote/server/ability/splitter"
 	"gcnote/server/config"
 	"gcnote/server/model"
 	"go.uber.org/zap"
@@ -17,99 +18,43 @@ import (
 )
 
 // readInitialContent reads the initial content for a room
-//func readInitialContent(shareFileId string) (string, string, error) {
-//	// 检查当前shareFileId是否存在
-//	if shareFileId == "" {
-//		return "", "", fmt.Errorf("share file id is empty")
-//	}
-//
-//	// sql查询
-//	shareFile := model.ShareFile{}
-//	tx := config.DB.Where("share_file_id = ?", shareFileId).First(&shareFile)
-//	if tx.Error != nil {
-//		return "", "", fmt.Errorf("share file not found")
-//	}
-//
-//	fileDir := filepath.Join(config.PathCfg.ShareFileDirPath, shareFileId)
-//	filePath := filepath.Join(fileDir, shareFile.FileName+".md")
-//
-//	// 首先检查fileDir和filePath是否存在
-//	if _, err := os.Stat(fileDir); os.IsNotExist(err) {
-//		zap.S().Debugf("fileDir: %s is not exist", fileDir)
-//		return "", "", fmt.Errorf("file directory not found")
-//	}
-//
-//	// 读取文件，转为字符串
-//	content, err := os.ReadFile(filePath)
-//	if err != nil {
-//		zap.S().Errorf("Failed to read file: %v", err)
-//		return "", "", err
-//	}
-//
-//	// 将content转为切片然后读取
-//	chunks := splitter.SplitMarkdownEasy(string(content))
-//	resultData := splitter.ChunkRead(chunks, config.PathCfg.ImageServerURL, "share", shareFileId)
-//
-//	return resultData, shareFile.FileName, nil
-//}
-
-func readInitialContent(shareFileId string) ([]byte, error) {
+func readInitialContent(shareFileId string) (string, string, error) {
 	// 检查当前shareFileId是否存在
 	if shareFileId == "" {
-		return nil, fmt.Errorf("share file id is empty")
+		return "", "", fmt.Errorf("share file id is empty")
 	}
 
 	// sql查询
 	shareFile := model.ShareFile{}
 	tx := config.DB.Where("share_file_id = ?", shareFileId).First(&shareFile)
 	if tx.Error != nil {
-		return nil, fmt.Errorf("share file not found")
+		return "报错了", "", fmt.Errorf("share file not found")
 	}
 
 	fileDir := filepath.Join(config.PathCfg.ShareFileDirPath, shareFileId)
-	filePath := filepath.Join(fileDir, "content.txt")
+	filePath := filepath.Join(fileDir, shareFile.FileName+".md")
 
 	// 首先检查fileDir和filePath是否存在
 	if _, err := os.Stat(fileDir); os.IsNotExist(err) {
 		zap.S().Debugf("fileDir: %s is not exist", fileDir)
-		return nil, fmt.Errorf("file directory not found")
+		return "报错了", "", fmt.Errorf("file directory not found")
 	}
 
 	// 读取文件，转为字符串
 	content, err := os.ReadFile(filePath)
 	if err != nil {
 		zap.S().Errorf("Failed to read file: %v", err)
-		return nil, err
+		return "报错了", "", err
 	}
 
-	return content, nil
+	// 将content转为切片然后读取
+	chunks := splitter.SplitMarkdownEasy(string(content))
+	resultData := splitter.ChunkRead(chunks, config.PathCfg.ImageServerURL, "share", shareFileId)
+
+	return resultData, shareFile.FileName, nil
 }
 
 func writeContent(shareFileId string, content []byte) error {
-	// 检查当前shareFileId是否存在
-	if shareFileId == "" {
-		return fmt.Errorf("share file id is empty")
-	}
-
-	// sql查询
-	shareFile := model.ShareFile{}
-	tx := config.DB.Where("share_file_id = ?", shareFileId).First(&shareFile)
-	if tx.Error != nil {
-		return fmt.Errorf("share file not found")
-	}
-
-	fileDir := filepath.Join(config.PathCfg.ShareFileDirPath, shareFileId)
-	filePath := filepath.Join(fileDir, "content.txt")
-	// 首先检查fileDir和filePath是否存在
-	if _, err := os.Stat(fileDir); os.IsNotExist(err) {
-		zap.S().Debugf("fileDir: %s is not exist", fileDir)
-		return fmt.Errorf("file directory not found")
-	}
-	// 保存文件到filePath
-	if err := os.WriteFile(filePath, content, 0644); err != nil {
-		zap.S().Errorf("Failed to write file: %v", err)
-		return err
-	}
 
 	return nil
 }
