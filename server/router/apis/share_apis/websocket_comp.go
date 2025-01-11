@@ -9,7 +9,6 @@ package share_apis
 import (
 	"bytes"
 	"fmt"
-	"gcnote/server/ability/splitter"
 	"gcnote/server/config"
 	"gcnote/server/model"
 	"go.uber.org/zap"
@@ -18,40 +17,101 @@ import (
 )
 
 // readInitialContent reads the initial content for a room
-func readInitialContent(shareFileId string) (string, string, error) {
+//func readInitialContent(shareFileId string) (string, string, error) {
+//	// 检查当前shareFileId是否存在
+//	if shareFileId == "" {
+//		return "", "", fmt.Errorf("share file id is empty")
+//	}
+//
+//	// sql查询
+//	shareFile := model.ShareFile{}
+//	tx := config.DB.Where("share_file_id = ?", shareFileId).First(&shareFile)
+//	if tx.Error != nil {
+//		return "", "", fmt.Errorf("share file not found")
+//	}
+//
+//	fileDir := filepath.Join(config.PathCfg.ShareFileDirPath, shareFileId)
+//	filePath := filepath.Join(fileDir, shareFile.FileName+".md")
+//
+//	// 首先检查fileDir和filePath是否存在
+//	if _, err := os.Stat(fileDir); os.IsNotExist(err) {
+//		zap.S().Debugf("fileDir: %s is not exist", fileDir)
+//		return "", "", fmt.Errorf("file directory not found")
+//	}
+//
+//	// 读取文件，转为字符串
+//	content, err := os.ReadFile(filePath)
+//	if err != nil {
+//		zap.S().Errorf("Failed to read file: %v", err)
+//		return "", "", err
+//	}
+//
+//	// 将content转为切片然后读取
+//	chunks := splitter.SplitMarkdownEasy(string(content))
+//	resultData := splitter.ChunkRead(chunks, config.PathCfg.ImageServerURL, "share", shareFileId)
+//
+//	return resultData, shareFile.FileName, nil
+//}
+
+func readInitialContent(shareFileId string) ([]byte, error) {
 	// 检查当前shareFileId是否存在
 	if shareFileId == "" {
-		return "", "", fmt.Errorf("share file id is empty")
+		return nil, fmt.Errorf("share file id is empty")
 	}
 
 	// sql查询
 	shareFile := model.ShareFile{}
 	tx := config.DB.Where("share_file_id = ?", shareFileId).First(&shareFile)
 	if tx.Error != nil {
-		return "", "", fmt.Errorf("share file not found")
+		return nil, fmt.Errorf("share file not found")
 	}
 
 	fileDir := filepath.Join(config.PathCfg.ShareFileDirPath, shareFileId)
-	filePath := filepath.Join(fileDir, shareFile.FileName+".md")
+	filePath := filepath.Join(fileDir, "content.txt")
 
 	// 首先检查fileDir和filePath是否存在
 	if _, err := os.Stat(fileDir); os.IsNotExist(err) {
 		zap.S().Debugf("fileDir: %s is not exist", fileDir)
-		return "", "", fmt.Errorf("file directory not found")
+		return nil, fmt.Errorf("file directory not found")
 	}
 
 	// 读取文件，转为字符串
 	content, err := os.ReadFile(filePath)
 	if err != nil {
 		zap.S().Errorf("Failed to read file: %v", err)
-		return "", "", err
+		return nil, err
 	}
 
-	// 将content转为切片然后读取
-	chunks := splitter.SplitMarkdownEasy(string(content))
-	resultData := splitter.ChunkRead(chunks, config.PathCfg.ImageServerURL, "share", shareFileId)
+	return content, nil
+}
 
-	return resultData, shareFile.FileName, nil
+func writeContent(shareFileId string, content []byte) error {
+	// 检查当前shareFileId是否存在
+	if shareFileId == "" {
+		return fmt.Errorf("share file id is empty")
+	}
+
+	// sql查询
+	shareFile := model.ShareFile{}
+	tx := config.DB.Where("share_file_id = ?", shareFileId).First(&shareFile)
+	if tx.Error != nil {
+		return fmt.Errorf("share file not found")
+	}
+
+	fileDir := filepath.Join(config.PathCfg.ShareFileDirPath, shareFileId)
+	filePath := filepath.Join(fileDir, "content.txt")
+	// 首先检查fileDir和filePath是否存在
+	if _, err := os.Stat(fileDir); os.IsNotExist(err) {
+		zap.S().Debugf("fileDir: %s is not exist", fileDir)
+		return fmt.Errorf("file directory not found")
+	}
+	// 保存文件到filePath
+	if err := os.WriteFile(filePath, content, 0644); err != nil {
+		zap.S().Errorf("Failed to write file: %v", err)
+		return err
+	}
+
+	return nil
 }
 
 func initializeYDoc(content string) []byte {
@@ -94,58 +154,9 @@ func initializeYDoc(content string) []byte {
 	return buf.Bytes()
 }
 
-func parseYDoc(data []byte) (string, error) {
-	buf := bytes.NewBuffer(data)
-
-	// 读取消息类型
-	_, _, err := readVarUint(buf.Bytes())
-	if err != nil {
-		return "", fmt.Errorf("读取消息类型失败: %v", err)
+func checkLastTwoBytes(data []byte) bool {
+	if len(data) < 2 {
+		return false
 	}
-	buf.Next(1) // 跳过已读取的字节
-
-	// 读取消息子类型
-	_, _, err = readVarUint(buf.Bytes())
-	if err != nil {
-		return "", fmt.Errorf("读取子类型失败: %v", err)
-	}
-	buf.Next(1)
-
-	// 读取内容长度
-	_, n, err := readVarUint(buf.Bytes())
-	if err != nil {
-		return "", fmt.Errorf("读取内容长度失败: %v", err)
-	}
-	buf.Next(n)
-
-	// 跳过版本信息 (2字节)
-	buf.Next(2)
-
-	// 跳过server ID (4字节)
-	buf.Next(4)
-
-	// 跳过结构标识符 (2字节)
-	buf.Next(2)
-
-	// 跳过内容类型标识 (2字节)
-	buf.Next(2)
-
-	// 跳过shared-text长度和内容 (11 + "shared-text")
-	buf.Next(12)
-
-	// 读取实际内容长度
-	contentLen, n, err := readVarUint(buf.Bytes())
-	if err != nil {
-		return "", fmt.Errorf("读取内容长度失败: %v", err)
-	}
-	buf.Next(n)
-
-	// 读取实际内容
-	content := make([]byte, contentLen)
-	_, err = buf.Read(content)
-	if err != nil {
-		return "", fmt.Errorf("读取内容失败: %v", err)
-	}
-
-	return string(content), nil
+	return data[len(data)-2] == 10 && data[len(data)-1] == 0
 }

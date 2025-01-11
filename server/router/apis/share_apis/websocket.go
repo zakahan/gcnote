@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"net/http"
 	"sync"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
@@ -91,11 +92,11 @@ func createRoom(roomID string) *Room {
 		return room
 	}
 
-	initialContent, _, err := readInitialContent(roomID)
+	initialState, err := readInitialContent(roomID)
 	if err != nil {
 		return nil
 	}
-	initialState := initializeYDoc(initialContent)
+	//initialState := initializeYDoc(initialContent)
 
 	room := &Room{
 		ID:        roomID,
@@ -107,6 +108,8 @@ func createRoom(roomID string) *Room {
 
 	// Start room's broadcast handler
 	go room.run()
+	// print state
+	go room.PersistenceState()
 
 	return room
 }
@@ -125,6 +128,35 @@ func (r *Room) run() {
 			}
 		}
 		r.mu.RUnlock()
+	}
+}
+
+// PersistenceState prints the room state every 10 seconds
+func (r *Room) PersistenceState() {
+	ticker := time.NewTicker(10 * time.Second)
+	defer ticker.Stop()
+
+	var lastState []byte
+
+	for {
+		select {
+		case <-ticker.C:
+			r.mu.RLock()
+			currentState := r.State
+			r.mu.RUnlock()
+
+			if !bytes.Equal(currentState, lastState) && checkLastTwoBytes(currentState) {
+				lastState = currentState
+				zap.S().Infof("Room %s state: %v", r.ID, currentState)
+				// 持久化
+				err := writeContent(r.ID, currentState)
+				if err != nil {
+					zap.S().Debugf("报错了")
+					return
+				}
+
+			}
+		}
 	}
 }
 
@@ -163,7 +195,6 @@ func (c *Client) readPump() {
 				// Store sync message in room state
 				c.Room.mu.Lock()
 				c.Room.State = message
-				zap.S().Debugf("看一看message: %v", message)
 				c.Room.mu.Unlock()
 			case messageAwareness:
 				// Just broadcast awareness updates

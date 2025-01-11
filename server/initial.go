@@ -166,7 +166,7 @@ func InitElasticSearch() {
 			Password:  config.ServerCfg.ElasticConf.Password,
 			CACert:    cert,
 		}
-		fmt.Println()
+		//fmt.Println()
 	} else { // 如果不使用证书
 		esCfg = elasticsearch.Config{
 			Addresses: []string{config.ServerCfg.ElasticConf.Address},
@@ -179,11 +179,11 @@ func InitElasticSearch() {
 	if err != nil {
 		zap.S().Panicf("初始化ElasticSearch失败 err:%+v", err)
 	}
-	report, err := elasticClient.HealthReport()
+	_, err = elasticClient.HealthReport()
 	if err != nil {
 		zap.S().Errorf("ElasticSearch健康状态监控报错 err:%+v", err)
 	} else {
-		zap.S().Infof("ElasticSearch Health Report %+v", report)
+		zap.S().Infof("ElasticSearch Health Report OK")
 	}
 
 	config.ElasticClient = elasticClient
