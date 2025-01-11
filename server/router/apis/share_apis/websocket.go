@@ -91,10 +91,16 @@ func createRoom(roomID string) *Room {
 		return room
 	}
 
+	initialContent, _, err := readInitialContent(roomID)
+	if err != nil {
+		return nil
+	}
+	initialState := initializeYDoc(initialContent)
+
 	room := &Room{
 		ID:        roomID,
 		Clients:   make(map[*Client]bool),
-		State:     make([]byte, 0),
+		State:     initialState,
 		Broadcast: make(chan []byte),
 	}
 	rooms[roomID] = room
@@ -157,6 +163,7 @@ func (c *Client) readPump() {
 				// Store sync message in room state
 				c.Room.mu.Lock()
 				c.Room.State = message
+				zap.S().Debugf("看一看message: %v", message)
 				c.Room.mu.Unlock()
 			case messageAwareness:
 				// Just broadcast awareness updates
