@@ -84,7 +84,7 @@ func initializeYDoc(content string) []byte {
 	// shared-text 字符串
 	contentBuf.WriteString("shared-text")
 	// 内容长度
-	contentBuf.WriteByte(byte(len(content)))
+	writeVarUint(contentBuf, uint64(len(content)))
 	// 实际内容
 	contentBuf.WriteString(content)
 	// 结束标记
