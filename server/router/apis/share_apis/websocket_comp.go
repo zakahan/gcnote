@@ -17,8 +17,7 @@ import (
 	"path/filepath"
 )
 
-//readInitialContent reads the initial content for a room
-
+// readInitialContent reads the initial content for a room
 func readInitialContent(shareFileId string) (string, string, error) {
 	// 检查当前shareFileId是否存在
 	if shareFileId == "" {
@@ -54,10 +53,6 @@ func readInitialContent(shareFileId string) (string, string, error) {
 
 	return resultData, shareFile.FileName, nil
 }
-
-const (
-	ServerID uint32 = 0 // 服务器ID设置为0
-)
 
 func initializeYDoc(content string) []byte {
 	buf := new(bytes.Buffer)
@@ -97,4 +92,60 @@ func initializeYDoc(content string) []byte {
 	buf.Write(contentBuf.Bytes())
 
 	return buf.Bytes()
+}
+
+func parseYDoc(data []byte) (string, error) {
+	buf := bytes.NewBuffer(data)
+
+	// 读取消息类型
+	_, _, err := readVarUint(buf.Bytes())
+	if err != nil {
+		return "", fmt.Errorf("读取消息类型失败: %v", err)
+	}
+	buf.Next(1) // 跳过已读取的字节
+
+	// 读取消息子类型
+	_, _, err = readVarUint(buf.Bytes())
+	if err != nil {
+		return "", fmt.Errorf("读取子类型失败: %v", err)
+	}
+	buf.Next(1)
+
+	// 读取内容长度
+	_, n, err := readVarUint(buf.Bytes())
+	if err != nil {
+		return "", fmt.Errorf("读取内容长度失败: %v", err)
+	}
+	buf.Next(n)
+
+	// 跳过版本信息 (2字节)
+	buf.Next(2)
+
+	// 跳过server ID (4字节)
+	buf.Next(4)
+
+	// 跳过结构标识符 (2字节)
+	buf.Next(2)
+
+	// 跳过内容类型标识 (2字节)
+	buf.Next(2)
+
+	// 跳过shared-text长度和内容 (11 + "shared-text")
+	buf.Next(12)
+
+	// 读取实际内容长度
+	contentLen, n, err := readVarUint(buf.Bytes())
+	if err != nil {
+		return "", fmt.Errorf("读取内容长度失败: %v", err)
+	}
+	buf.Next(n)
+
+	// 读取实际内容
+	content := make([]byte, contentLen)
+	_, err = buf.Read(content)
+	if err != nil {
+		return "", fmt.Errorf("读取内容失败: %v", err)
+	}
+
+	return string(content), nil
 }
