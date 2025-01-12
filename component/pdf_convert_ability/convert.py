@@ -24,6 +24,8 @@ def pdf_convert(pdf_path: str, output_dir: str, with_page_line:bool) -> tuple[st
                 text = f"\n\n![image](images/page_{i}_image_{image_code}.{block['image_ext']})\n\n"
                 image_code += 1
                 pass
+            elif block['type'] == BlockType.TABLE.value:
+                text = f"\n\n{block['text']}\n\n"
             else:
                 text = ""
             contents.append(text)
@@ -47,8 +49,8 @@ def pdf_convert(pdf_path: str, output_dir: str, with_page_line:bool) -> tuple[st
 if __name__ == "__main__":
     import time
 
-    file_path = r"C:\MyScripts\Indie\goweb\gcnote\test\docs\23年统计公报-节选.pdf"
-    output_dir = r"output"
+    file_path = r"C:\MyScripts\Indie\goweb\gcnote\test\docs\关于下发新春金牛购机活动的业务通知.pdf"
+    output_dir = r"tmp"
     start = time.time()
     pdf_convert(file_path, output_dir, True)
     print(f"cost time: {time.time()-start}")

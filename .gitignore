@@ -3,3 +3,6 @@
 /test/
 /data/
 /server/config/http_ca.crt
+/assert/doc/ywebsocket/
+/component/pdf_convert_ability/.idea/
+/component/pdf_convert_ability/tmp/
