@@ -1,14 +1,15 @@
 import os
+from PIL import Image
 from pdf_parser.pdf_reader import read_as_dict
 from pdf_parser.block_types import BlockType
 from pdf_parser.create_md import create_md
 from pdf_parser.utils import save_base64_image, word2heading
 
 
-def pdf_convert(pdf_path: str, output_dir: str, with_page_line:bool) -> tuple[str, str]:
+def pdf_convert(pdf_path: str, output_dir: str, dpi:int=300, with_page_line: bool=False) -> tuple[str, str]:
     page_content_list = []
     md_path, md_dir = create_md(pdf_path, output_dir)
-    page_list = read_as_dict(pdf_path)
+    page_list = read_as_dict(pdf_path, dpi)
     for i, page in enumerate(page_list):
         contents = []
         image_code = 1
@@ -17,8 +18,9 @@ def pdf_convert(pdf_path: str, output_dir: str, with_page_line:bool) -> tuple[st
             if block['type'] == BlockType.TEXT.value:
                 text = word2heading(block['text'].strip(), block['font_size'])
             elif block['type'] == BlockType.IMAGE.value:
+                # 从page里切除来
                 save_base64_image(
-                    block['image'],block['image_ext'], f"page_{i}_image_{image_code}",
+                    block['image'], block['image_ext'], f"page_{i}_image_{image_code}",
                     os.path.join(output_dir, "images")
                 )
                 text = f"\n\n![image](images/page_{i}_image_{image_code}.{block['image_ext']})\n\n"
@@ -43,7 +45,7 @@ def pdf_convert(pdf_path: str, output_dir: str, with_page_line:bool) -> tuple[st
                 pass
             pass
         pass
-    return md_path,md_dir
+    return md_path, md_dir
 
 
 if __name__ == "__main__":
@@ -52,5 +54,5 @@ if __name__ == "__main__":
     file_path = r"C:\MyScripts\Indie\goweb\gcnote\test\docs\关于下发新春金牛购机活动的业务通知.pdf"
     output_dir = r"tmp"
     start = time.time()
-    pdf_convert(file_path, output_dir, True)
+    pdf_convert(file_path, output_dir, 300,True)
     print(f"cost time: {time.time()-start}")

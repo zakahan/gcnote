@@ -1,18 +1,8 @@
 import os
 import re
-
-import pandas as pd
 from io import StringIO, BytesIO
 import base64
 from PIL import Image
-
-
-def html2markdown(html_string: str):
-    html_string = html_string.replace('\n', '')  # 必须先移除所有的\n 不然后面判断逻辑可能出现问题
-    df_table = pd.read_html(StringIO(html_string), header=0)[0]
-    md_table = df_table.to_markdown(index=False)
-    md_table = md_table.replace('  ', '').replace('\t', '')
-    return md_table
 
 
 def save_base64_image(base64_string: str, ext: str, filename: str, output_dir: str) -> str:
@@ -53,6 +43,20 @@ def save_base64_image(base64_string: str, ext: str, filename: str, output_dir: s
 
     except Exception as e:
         raise ValueError(f"保存图像时出错: {e}")
+
+
+def get_page_image(image: Image, block: dict, dpi: int):
+    try:
+        r_box = tuple([b * dpi / 72 for b in block['bbox']]) # 默认是72
+        image_clip = image.crop(r_box)
+        # 将图像保存到内存中的 BytesIO 对象
+        buffered = BytesIO()
+        image_clip.save(buffered, format="PNG")
+        # 获取图像的 Base64 编码
+        encoded_image = base64.b64encode(buffered.getvalue()).decode("utf-8")
+        return encoded_image
+    except Exception as e:
+        return block['image']
 
 
 def word2heading(text: str, font_size: float):

@@ -1,16 +1,21 @@
 import json
 import pymupdf
+from PIL import Image
+from io import BytesIO
 from pymupdf import Document
 from pymupdf import Page
+from pymupdf import Pixmap
 from pymupdf.table import find_tables
 from pdf_parser.block_types import BlockType
+from pdf_parser.utils import get_page_image
 
 
-def read_as_dict(file_path: str) -> list[dict]:
+def read_as_dict(file_path: str, dpi=300) -> list[dict]:
     page_content = []
     doc = pymupdf.open(file_path)
     for i in range(0, doc.page_count):
         page = doc[i]
+        image = Image.open(BytesIO(page.get_pixmap(dpi=dpi).tobytes()))
         tables = find_tables(page).tables
         table_block_list = []
         for table in tables:
@@ -31,7 +36,6 @@ def read_as_dict(file_path: str) -> list[dict]:
             "chunks": []
         }
 
-
         for block in fitz_page_dict['blocks']:
             page_block = {
                 "font_size": 24,  # h1是48 = 24 *2 超过了也是h1无所谓了
@@ -39,7 +43,7 @@ def read_as_dict(file_path: str) -> list[dict]:
             }
             # 有表格的情况
             for table_block in table_block_list:
-                if is_inside(table_block["bbox"], page_block["bbox"]):      # B 是否属于 A
+                if is_inside(table_block["bbox"], page_block["bbox"]):  # B 是否属于 A
                     # 如果有重叠，直接不要page_block了
                     if len(page_dict["chunks"]) == 0 or page_dict["chunks"][-1] not in table_block_list:
                         page_dict["chunks"].append(table_block)
@@ -58,17 +62,17 @@ def read_as_dict(file_path: str) -> list[dict]:
                                     page_block['font_size'] = span['size']
                         # 回到block级别
                         page_block["text"] = "".join(page_block_text_list)
+                        page_block["text"] = fullwidth_to_halfwidth(page_block["text"])
                         pass
                     elif 'image' in block:
                         page_block['type'] = BlockType.IMAGE.value
-                        page_block['image'] = block['image']
+                        page_block['image'] = get_page_image(image, block, dpi=dpi)
                         page_block['image_ext'] = block['ext']
                         pass
                     else:
                         # 啥也不干，但这个情况不太可能
                         page_block["text"] = ""
                         pass
-
                     page_dict["chunks"].append(page_block)
                     # end of else
                 # end of for loop
@@ -86,10 +90,11 @@ def read_as_dict(file_path: str) -> list[dict]:
                                 page_block['font_size'] = span['size']
                     # 回到block级别
                     page_block["text"] = "".join(page_block_text_list)
+                    page_block["text"] = fullwidth_to_halfwidth(page_block["text"])
                     pass
                 elif 'image' in block:
                     page_block['type'] = BlockType.IMAGE.value
-                    page_block['image'] = block['image']
+                    page_block['image'] = get_page_image(image, block, dpi=dpi)
                     page_block['image_ext'] = block['ext']
                     pass
                 else:
@@ -98,8 +103,8 @@ def read_as_dict(file_path: str) -> list[dict]:
                     pass
 
                 page_dict["chunks"].append(page_block)
-                pass        # end of if
-            pass # end of everything
+                pass  # end of if
+            pass  # end of everything
         pass
 
         # 一个页面接受
@@ -136,6 +141,18 @@ def is_inside(rectA, rectB):
 
     # Check if all corners of rectB are inside rectA
     return (A_x1 <= B_x1 and B_x2 <= A_x2) and (A_y1 <= B_y1 and B_y2 <= A_y2)
+
+
+def fullwidth_to_halfwidth(s: str) -> str:
+    result = []
+    for char in s:
+        # 判断是否是全角字符
+        if '\uFF01' <= char <= '\uFF5E':  # 全角字符范围
+            # 转换为对应的半角字符
+            result.append(chr(ord(char) - 0xFEE0))
+        else:
+            result.append(char)
+    return ''.join(result)
 
 
 if __name__ == "__main__":

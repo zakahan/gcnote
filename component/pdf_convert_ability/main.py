@@ -9,7 +9,7 @@ def main():
 
     args = parser.parse_args()
     try:
-        md_path, md_dir = pdf_convert(args.pdf_path, args.output_dir, True)
+        md_path, md_dir = pdf_convert(args.pdf_path, args.output_dir, 300,True)
         # 返回 JSON 格式，方便其他语言解析
         print(json.dumps({"success": True, "md_path": md_path, "md_dir": md_dir}))
     except Exception as e:
