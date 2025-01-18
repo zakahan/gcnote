@@ -376,21 +376,13 @@ onMounted(() => {
     text-align: center;
     font-size: 18px;
   }
-  
-  .el-sub-menu {
-    .el-menu-item {
-      min-width: 200px;
-    }
-  }
+
 }
 
 .search-box {
   padding: 10px 20px;
   border-bottom: 1px solid #e6e6e6;
 
-  :deep(.el-input__wrapper) {
-    cursor: pointer;
-  }
 }
 
 .kb-item-wrapper {
@@ -413,16 +405,6 @@ onMounted(() => {
       }
     }
 
-    :deep(.el-dropdown-menu__item) {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      padding: 8px 16px;
-      
-      .el-icon {
-        margin-right: 5px;
-      }
-    }
   }
 }
 
@@ -436,9 +418,6 @@ onMounted(() => {
     flex-direction: column;
     gap: 10px;
 
-    .search-mode {
-      padding: 10px 0;
-    }
   }
 
   .search-results {
@@ -464,43 +443,6 @@ onMounted(() => {
         margin-bottom: 4px;
       }
 
-      .result-content {
-        color: #606266;
-        font-size: 13px;
-        margin-left: 24px;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-    }
-  }
-}
-
-:deep(.delete-confirm-dialog) {
-  .el-message-box__header {
-    padding: 15px 20px;
-    border-bottom: 1px solid #dcdfe6;
-  }
-
-  .el-message-box__content {
-    padding: 20px;
-    font-size: 14px;
-  }
-
-  .el-message-box__btns {
-    padding: 10px 20px;
-    border-top: 1px solid #dcdfe6;
-
-    .el-button--primary {
-      background-color: #f56c6c;
-      border-color: #f56c6c;
-
-      &:hover {
-        background-color: #f78989;
-        border-color: #f78989;
-      }
     }
   }
 }
@@ -537,31 +479,4 @@ onMounted(() => {
   gap: 12px;
 }
 
-:deep(.el-dialog) {
-  border-radius: 8px;
-  
-  .el-dialog__header {
-    margin: 0;
-    padding: 20px;
-    border-bottom: 1px solid #DCDFE6;
-  }
-  
-  .el-dialog__headerbtn {
-    top: 20px;
-  }
-  
-  .el-dialog__title {
-    font-size: 16px;
-    font-weight: 500;
-  }
-  
-  .el-dialog__body {
-    padding: 20px;
-  }
-  
-  .el-dialog__footer {
-    padding: 20px;
-    border-top: 1px solid #DCDFE6;
-  }
-}
 </style>
