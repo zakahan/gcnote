@@ -79,14 +79,7 @@
               <span class="file-name">{{ currentFile.KBFileName }}</span>
             </div>
             <div class="editor-actions">
-              <el-button 
-                type="primary" 
-                :icon="Share"
-                size="small"
-                @click="showShareDialog = true"
-              >
-                分享文档
-              </el-button>
+
               <el-button 
                 type="primary" 
                 :icon="Upload"
@@ -215,25 +208,6 @@
         </div>
       </el-dialog>
 
-      <!-- 分享文档对话框 -->
-      <el-dialog
-        v-model="showShareDialog"
-        title="分享文档"
-        width="30%"
-        :close-on-click-modal="false"
-      >
-        <div class="share-dialog-content">
-          <el-icon class="share-icon" :size="50"><Share /></el-icon>
-          <div class="share-title">确定要分享 "{{ currentFile?.KBFileName }}" 吗？</div>
-          <div class="share-desc">分享后将生成访问密码，其他用户可以通过密码访问此文档。</div>
-        </div>
-        <template #footer>
-          <span class="dialog-footer">
-            <el-button @click="showShareDialog = false">取消</el-button>
-            <el-button type="primary" @click="handleShare">确定分享</el-button>
-          </span>
-        </template>
-      </el-dialog>
 
       <!-- 删除确认对话框 -->
       <el-dialog
@@ -255,24 +229,7 @@
         </template>
       </el-dialog>
 
-      <!-- 已分享提示对话框 -->
-      <el-dialog
-        v-model="showExistDialog"
-        title="文件已分享"
-        width="30%"
-        :close-on-click-modal="false"
-      >
-        <div class="share-dialog-content">
-          <el-icon class="share-icon warning-icon" :size="50"><Warning /></el-icon>
-          <div class="share-title">文档已分享</div>
-          <div class="share-desc">该文档已经分享过了，无法重复分享。</div>
-        </div>
-        <template #footer>
-          <span class="dialog-footer">
-            <el-button type="primary" @click="showExistDialog = false">我知道了</el-button>
-          </span>
-        </template>
-      </el-dialog>
+
     </div>
   </div>
 </template>
@@ -280,8 +237,8 @@
 <script setup>
 import { ref, onMounted, watch, nextTick, onBeforeUnmount, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { Document, MoreFilled, FolderOpened, Plus, UploadFilled, Search, Upload, Share, Warning } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
+import { Document, MoreFilled, FolderOpened, Plus, UploadFilled, Search, Upload, Warning } from '@element-plus/icons-vue'
 import axios from 'axios'
 import Vditor from 'vditor'
 import 'vditor/dist/index.css'
@@ -321,9 +278,7 @@ const topK = ref(5)
 const searchResults = ref([])
 const searching = ref(false)
 const updating = ref(false)
-const showShareDialog = ref(false)
 const showDeleteDialog = ref(false)
-const showExistDialog = ref(false)
 const fileToDelete = ref(null)
 
 // 上传相关的数据
@@ -798,77 +753,7 @@ const handleUpdate = async () => {
   }
 }
 
-// 处理分享
-const handleShare = async () => {
-  if (!currentFile.value) {
-    ElMessage.warning('请先选择文件')
-    return
-  }
 
-  try {
-    // 先确认是否已经分享
-    const token = localStorage.getItem('token')
-    const checkResponse = await axios.get(`http://localhost:8086/share/exist`, {
-      params: {
-        share_file_id: currentFile.value.KBFileId
-      },
-      headers: { token }
-    })
-
-    if (checkResponse.data.Code === 0) {
-      if (checkResponse.data.Data.exist) {
-        showShareDialog.value = false
-        showExistDialog.value = true
-        return
-      }
-
-      // 创建分享
-      const createResponse = await axios.post(
-        'http://localhost:8086/share/create',
-        {
-          kb_file_id: currentFile.value.KBFileId
-        },
-        {
-          headers: {
-            'token': token,
-            'Content-Type': 'application/json'
-          }
-        }
-      )
-
-      if (createResponse.data.Code === 0) {
-        showShareDialog.value = false
-        
-        // 使用美化的对话框显示密码
-        ElMessageBox.alert(
-          `<div class="custom-dialog-content">
-            <el-icon class="dialog-icon" style="color: #67C23A;"><CircleCheckFilled /></el-icon>
-            <div class="dialog-title">文档分享成功</div>
-            <div class="dialog-desc">您可以将以下访问密码分享给其他用户</div>
-            <div class="password-container">
-              <div class="password-value">${createResponse.data.Data.password}</div>
-              <div class="password-tip">点击密码可以复制</div>
-            </div>
-          </div>`,
-          '',
-          {
-            confirmButtonText: '确定',
-            dangerouslyUseHTMLString: true,
-            showClose: false,
-            customClass: 'custom-message-box'
-          }
-        )
-      } else {
-        ElMessage.error(createResponse.data.Msg || '分享失败')
-      }
-    }
-  } catch (error) {
-    if (error !== 'cancel') {
-      console.error('分享失败:', error)
-      ElMessage.error('分享失败')
-    }
-  }
-}
 </script>
 
 <style lang="less" scoped>

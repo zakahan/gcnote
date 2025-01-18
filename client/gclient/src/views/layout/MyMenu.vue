@@ -67,11 +67,6 @@
         <el-empty v-else description="暂无知识库" />
       </el-sub-menu>
 
-      <el-menu-item index="shared" @click="router.push('/shared')">
-        <el-icon><Share /></el-icon>
-        <span>共享文档</span>
-      </el-menu-item>
-
       <el-menu-item index="recycle" @click="router.push('/recycle')">
         <el-icon><Delete /></el-icon>
         <span>回收站</span>
@@ -165,7 +160,7 @@
 import { ref, onMounted, defineExpose } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { HomeFilled, Folder, Document, MoreFilled, EditPen, Delete, Search, Share, Warning } from '@element-plus/icons-vue'
+import { HomeFilled, Folder, Document, MoreFilled, EditPen, Delete, Search, Warning } from '@element-plus/icons-vue'
 import axios from 'axios'
 
 const router = useRouter()

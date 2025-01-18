@@ -32,21 +32,11 @@ const routes = [
         })
       },
       {
-        path: 'shared',
-        name: 'shared',
-        component: () => import('@/views/shared/SharedDocs.vue')
-      },
-      {
         path: 'recycle',
         name: 'recycle',
         component: () => import('@/views/recycle/RecycleBin.vue')
       }
     ]
-  },
-  {
-    path: '/shared-doc/:id',
-    name: 'shared-doc-view',
-    component: () => import('@/views/shared/SharedDocView.vue')
   }
 ]
 
