@@ -6,4 +6,5 @@
 /assert/doc/ywebsocket/
 /component/pdf_convert_ability/.idea/
 /component/pdf_convert_ability/tmp/
-/component/sharedb_backend/node_modules/
+/client/gc_demo/node_modules/
+/client/gc_demo/.vscode/
