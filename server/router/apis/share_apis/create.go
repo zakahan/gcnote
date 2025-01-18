@@ -7,7 +7,6 @@
 package share_apis
 
 import (
-	"gcnote/server/ability/splitter"
 	"gcnote/server/config"
 	"gcnote/server/dto"
 	"gcnote/server/model"
@@ -82,26 +81,6 @@ func CreateShareFile(ctx *gin.Context) {
 	err := wrench.CopyDir(srcPath, sharePath)
 	if err != nil {
 		ctx.JSON(http.StatusOK, dto.FailWithMessage(dto.InternalErrCode, "复制文件目录失败"))
-		return
-	}
-	// 创建一个byte.txt
-	fileDir := filepath.Join(config.PathCfg.ShareFileDirPath, req.KBFileId)
-	filePath := filepath.Join(fileDir, kbFile.KBFileName+".md")
-	// 读取文件，转为字符串
-	content, err := os.ReadFile(filePath)
-	if err != nil {
-		zap.S().Errorf("Failed to read file: %v", err)
-		return
-	}
-	// 将content转为切片然后读取
-	chunks := splitter.SplitMarkdownEasy(string(content))
-	resultData := splitter.ChunkRead(chunks, config.PathCfg.ImageServerURL, "share", req.KBFileId)
-	//zap.S().Infof("Result Data", resultData)
-	resultByteData := initializeYDoc(resultData)
-	// 将其保存到下面的路径
-	contentPath := filepath.Join(fileDir, "content.txt")
-	if err = os.WriteFile(contentPath, resultByteData, 0644); err != nil {
-		zap.S().Errorf("Failed to write content file: %v", err)
 		return
 	}
 

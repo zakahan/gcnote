@@ -15,6 +15,8 @@ import (
 	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/redis/go-redis/v9"
 	"github.com/spf13/viper"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"gopkg.in/natefinch/lumberjack.v2"
@@ -188,4 +190,33 @@ func InitElasticSearch() {
 
 	config.ElasticClient = elasticClient
 
+}
+
+func InitMongoDB() {
+	cfg := config.ServerCfg
+	uri := cfg.MongodbConf.Address
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	clientOptions := options.Client().ApplyURI(uri)
+	client, err := mongo.Connect(ctx, clientOptions)
+	if err != nil {
+		zap.S().Fatal("Failed to connect to MongoDB:", err)
+	}
+
+	config.MongoDBConf = client
+	zap.S().Info("MongoDB connection established.")
+}
+
+func CloseMongoDB() {
+	if config.MongoDBConf != nil {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		if err := config.MongoDBConf.Disconnect(ctx); err != nil {
+			zap.S().Error("Failed to disconnect MongoDB:", err)
+		} else {
+			zap.S().Info("MongoDB connection closed.")
+		}
+	}
 }

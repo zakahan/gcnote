@@ -82,8 +82,6 @@ func InitRouter() *gin.Engine {
 	group4.GET("/exist", share_apis.CheckShareFileExist)
 	group4.GET("/info", share_apis.ListShareFiles)
 	group4.POST("/read", share_apis.ReadFile)
-	// 实时协作
-	route.GET("/share/ws/:room", share_apis.HandleWebSocket)
 
 	route.GET("/images/:index_id/:kb_file_id/:image_name", utils_apis.GetImage)
 	route.POST("/images/upload", utils_apis.UploadImage)

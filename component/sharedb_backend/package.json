@@ -1,0 +1,19 @@
+{
+  "name": "sharedb_backend",
+  "version": "1.0.0",
+  "description": "使用shareDB实现共享文档功能。",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@teamwork/websocket-json-stream": "^2.0.0",
+    "mongodb": "^6.12.0",
+    "sharedb": "^5.1.1",
+    "sharedb-mongo": "^5.0.0",
+    "ws": "^8.18.0"
+  }
+}
