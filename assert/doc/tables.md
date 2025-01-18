@@ -49,19 +49,6 @@
 知识库文档的真实路径会是/\$DocumentDir/recycle_bin/\$IndexId/\$KBFileId/KBFileName.md
 
 
-
-### 文档级共享表 Share
-
-| 表项           | 数据类型    | 作用                             |
-| -------------- | ----------- | -------------------------------- |
-| **ShareId**    | **String**  | **共享记录ID，唯一标识每条记录** |
-| IndexId        | String      | 知识库ID，唯一标识知识库         |
-| KBFileId       | String      | 文件ID，唯一标识文件             |
-| SharedToUserId | String      | 被授权用户的ID                   |
-| PermissionType | Enum/String | 权限类型（读取、编辑等）         |
-
-
-
 # ElasticSearch表
 
 就一个表把

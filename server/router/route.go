@@ -11,7 +11,6 @@ import (
 	"gcnote/server/router/apis/index_apis"
 	"gcnote/server/router/apis/kb_apis"
 	"gcnote/server/router/apis/recycle_apis"
-	"gcnote/server/router/apis/share_apis"
 	"gcnote/server/router/apis/user_apis"
 	"gcnote/server/router/apis/utils_apis"
 	"gcnote/server/router/middleware"
@@ -74,14 +73,6 @@ func InitRouter() *gin.Engine {
 	group3.GET("/clear", recycle_apis.ClearUserRecycleBin)
 	group3.POST("/clearup", recycle_apis.CleanupOldRecycleFiles)
 	group3.POST("/restore", recycle_apis.RestoreRecycleFile)
-
-	// 分享文件相关
-	group4 := route.Group("share").Use(middleware.VerifyJWT())
-	group4.POST("/create", share_apis.CreateShareFile)
-	group4.POST("/delete", share_apis.DeleteShareFile)
-	group4.GET("/exist", share_apis.CheckShareFileExist)
-	group4.GET("/info", share_apis.ListShareFiles)
-	group4.POST("/read", share_apis.ReadFile)
 
 	route.GET("/images/:index_id/:kb_file_id/:image_name", utils_apis.GetImage)
 	route.POST("/images/upload", utils_apis.UploadImage)

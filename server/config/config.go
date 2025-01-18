@@ -10,7 +10,6 @@ import (
 	"github.com/allegro/bigcache/v3"
 	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/redis/go-redis/v9"
-	"go.mongodb.org/mongo-driver/mongo"
 	"gorm.io/gorm"
 )
 
@@ -23,7 +22,6 @@ type ServerConfig struct {
 	MysqlConf   mysqlConfig         `mapstructure:"mysql" json:"mysql"`                 // Mysql配置
 	LogConf     logsConfig          `mapstructure:"logs" json:"logs"`                   // 日志配置
 	ElasticConf elasticSearchConfig `mapstructure:"elasticsearch" json:"elasticsearch"` // es的配置
-	MongodbConf mongodbConfig       `mapstructure:"mongodb" json:"mongodb"`             // mongo db的配置
 }
 
 type redisConfig struct {
@@ -57,14 +55,8 @@ type elasticSearchConfig struct {
 	UseCert  bool   `mapstructure:"use_cert" json:"use_cert"`   // 是否使用许可证
 }
 
-type mongodbConfig struct {
-	Address string `mapstructure:"address" json:"address"` // mongodb的地址
-	DBName  string `mapstructure:"db_name" json:"db_name"` // 知识库名称
-}
-
 var ServerCfg ServerConfig
 var DB *gorm.DB
 var RedisClient redis.UniversalClient
 var LocalCache *bigcache.BigCache
 var ElasticClient *elasticsearch.Client
-var MongoDBConf *mongo.Client
