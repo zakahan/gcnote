@@ -34,7 +34,6 @@ type PathConfig struct {
 	KnowledgeBasePath string
 	RecycleBinPath    string
 	TempDirPath       string
-	ShareFileDirPath  string
 	ImageServerURL    string
 }
 
@@ -45,7 +44,6 @@ func Constructor() PathConfig {
 	jwtPublicKeyPath := filepath.Join(baseProjectPath, "server/router/middleware/public.key")
 	knowledgeBasePath := filepath.Join(baseProjectPath, "data/local/knowledge_base")
 	recycleBinPath := filepath.Join(baseProjectPath, "data/local/recycle_bin")
-	shareFileDirPath := filepath.Join(baseProjectPath, "data/local/share_files")
 	tempFilePath := filepath.Join(baseProjectPath, "data/tmp")
 	imageServerURL := "http://localhost:8086/images"
 
@@ -56,7 +54,6 @@ func Constructor() PathConfig {
 		JwtPrivateKeyPath: jwtPrivateKeyPath,
 		KnowledgeBasePath: knowledgeBasePath,
 		RecycleBinPath:    recycleBinPath,
-		ShareFileDirPath:  shareFileDirPath,
 		TempDirPath:       tempFilePath,
 		ImageServerURL:    imageServerURL,
 	}

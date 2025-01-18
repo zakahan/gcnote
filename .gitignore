@@ -1,5 +1,5 @@
 /docs/
-/server/etc/
+#/server/etc/
 /test/
 /data/
 /server/config/http_ca.crt

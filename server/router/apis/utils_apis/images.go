@@ -34,14 +34,8 @@ func GetImage(ctx *gin.Context) {
 	imageName := parts[0]
 	ext := parts[1]
 	var imagePath string
-
-	if indexID == "share" {
-		imagePath = filepath.Join(config.PathCfg.ShareFileDirPath, kbFileID, "images", imageName+"."+ext)
-	} else {
-		// 构建图片文件的完整路径
-		imagePath = filepath.Join(config.PathCfg.KnowledgeBasePath, indexID, kbFileID, "images", imageName+"."+ext)
-
-	}
+	// 构建图片文件的完整路径
+	imagePath = filepath.Join(config.PathCfg.KnowledgeBasePath, indexID, kbFileID, "images", imageName+"."+ext)
 
 	// 读取图片文件
 	imageBytes, err := os.ReadFile(imagePath)
@@ -88,13 +82,8 @@ func UploadImage(ctx *gin.Context) {
 		return
 	}
 	var uploadDir string
-	if indexId == "share" {
-		uploadDir = filepath.Join(config.PathCfg.ShareFileDirPath, kbFileId, "images")
-	} else {
-		// 构建图片文件的完整路径
-		uploadDir = filepath.Join(config.PathCfg.KnowledgeBasePath, indexId, kbFileId, "images")
-
-	}
+	// 构建图片文件的完整路径
+	uploadDir = filepath.Join(config.PathCfg.KnowledgeBasePath, indexId, kbFileId, "images")
 
 	if _, err = os.Stat(uploadDir); os.IsNotExist(err) {
 		err = os.Mkdir(uploadDir, os.ModePerm)
