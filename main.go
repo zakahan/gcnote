@@ -17,8 +17,6 @@ func main() {
 	server.InitRedis()
 	server.InitLocalCache()
 	server.InitElasticSearch()
-	server.InitMongoDB()
-	defer server.CloseMongoDB()
 	zap.S().Infof("\n")
 	zap.S().Infof("-------------------------------------------------")
 	zap.S().Infof("-------------------------------------------------")
