@@ -296,7 +296,7 @@ const fetchKbFiles = async () => {
     token.value = localStorage.getItem('token')
     if (!token.value) {
       ElMessage.error('未登录或登录已过期')
-      router.push('/login')
+      await router.push('/login')
       return
     }
 
@@ -413,25 +413,6 @@ const initVditor = async () => {
       fieldName: 'file',
       headers: {
         'token': token.value
-      },
-      before: (files) => {
-        if (!currentFile.value || !route.params.index_id) {
-          ElMessage.error('请先选择文件')
-          return false
-        }
-
-        const formData = new FormData()
-        formData.append('file', files[0])
-        formData.append('index_id', route.params.index_id)
-        formData.append('kb_file_id', currentFile.value.KBFileId)
-
-        // 打印一下看看值是否正确
-        console.log('上传参数:', {
-          index_id: route.params.index_id,
-          kb_file_id: currentFile.value.KBFileId
-        })
-
-        return formData
       },
       success: (_, response) => {
         try {
@@ -795,55 +776,18 @@ const handleUpdate = async () => {
         }
 
         .create-btn {
-          :deep(.el-button) {
-            padding: 8px 16px;
-          }
         }
       }
 
       .file-menu {
         border-right: none;
 
-        .el-menu-item {
-          padding: 0 20px;
-
-          .file-item {
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-
-            .file-info {
-              display: flex;
-              align-items: center;
-              gap: 8px;
-            }
-
-            .file-actions {
-              display: none;
-              margin-left: 8px;
-            }
-          }
-
-          &:hover {
-            .file-actions {
-              display: block;
-            }
-          }
-
-          &.is-active {
-            background-color: #ecf5ff;
-          }
-        }
       }
 
       .search-box {
         padding: 10px 20px;
         border-bottom: 1px solid #e6e6e6;
 
-        :deep(.el-input__wrapper) {
-          cursor: pointer;
-        }
       }
     }
 
@@ -901,10 +845,6 @@ const handleUpdate = async () => {
   display: flex;
   align-items: center;
   color: #909399;
-}
-
-:deep(.el-upload-dragger) {
-  width: 100%;
 }
 
 .search-dialog-content {
@@ -992,141 +932,5 @@ const handleUpdate = async () => {
   gap: 12px;
 }
 
-:deep(.el-dialog) {
-  border-radius: 8px;
-  
-  .el-dialog__header {
-    margin: 0;
-    padding: 20px;
-    border-bottom: 1px solid #DCDFE6;
-  }
-  
-  .el-dialog__headerbtn {
-    top: 20px;
-  }
-  
-  .el-dialog__title {
-    font-size: 16px;
-    font-weight: 500;
-  }
-  
-  .el-dialog__body {
-    padding: 20px;
-  }
-  
-  .el-dialog__footer {
-    padding: 20px;
-    border-top: 1px solid #DCDFE6;
-  }
-}
-
-:deep(.custom-message-box) {
-  padding: 0;
-  border-radius: 8px;
-  background: #fff;
-  border: none;
-  width: 400px !important;
-  
-  .el-message-box__header {
-    display: none;
-  }
-  
-  .el-message-box__content {
-    padding: 0;
-    margin: 0;
-    background: #fff;
-    
-    .el-message-box__status {
-      display: none;
-    }
-    
-    .el-message-box__message {
-      padding: 0;
-      margin: 0;
-
-      p {
-        margin: 0;
-        padding: 0;
-      }
-    }
-  }
-  
-  .el-message-box__btns {
-    padding: 20px;
-    border-top: 1px solid #DCDFE6;
-    margin-top: 0;
-    display: flex;
-    justify-content: center;
-    gap: 12px;
-
-    .el-button {
-      margin: 0;
-      min-width: 100px;
-      height: 36px;
-      padding: 0 20px;
-    }
-  }
-  
-  &.danger {
-    .el-button--primary {
-      background-color: var(--el-color-danger);
-      border-color: var(--el-color-danger);
-      
-      &:hover {
-        background-color: var(--el-color-danger-light-3);
-        border-color: var(--el-color-danger-light-3);
-      }
-    }
-  }
-}
-
-.custom-dialog-content {
-  padding: 30px;
-  text-align: center;
-  background: #fff;
-  
-  .dialog-icon {
-    font-size: 48px;
-    margin-bottom: 20px;
-  }
-  
-  .dialog-title {
-    font-size: 18px;
-    font-weight: 500;
-    color: #303133;
-    margin-bottom: 10px;
-  }
-  
-  .dialog-desc {
-    font-size: 14px;
-    color: #909399;
-    margin-bottom: 0;
-  }
-  
-  .password-container {
-    margin-top: 20px;
-    
-    .password-value {
-      background-color: #f5f7fa;
-      padding: 12px;
-      border-radius: 4px;
-      font-family: monospace;
-      font-size: 18px;
-      margin-bottom: 8px;
-      user-select: all;
-      cursor: pointer;
-    }
-    
-    .password-tip {
-      font-size: 12px;
-      color: #909399;
-    }
-  }
-}
-
 // 添加全局遮罩样式
-:deep(.v-modal) {
-  opacity: 0.5;
-  background-color: #000;
-}
 </style>

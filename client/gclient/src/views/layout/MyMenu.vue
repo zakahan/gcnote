@@ -369,13 +369,7 @@ onMounted(() => {
 .el-menu-vertical {
   height: 100%;
   border-right: none;
-  
-  :deep(.el-menu-item) {
-    &.is-active {
-      background-color: #ecf5ff;
-    }
-  }
-  
+
   .el-menu-item [class^="el-icon-"] {
     margin-right: 5px;
     width: 24px;

@@ -331,31 +331,4 @@ onMounted(() => {
   gap: 12px;
 }
 
-:deep(.el-dialog) {
-  border-radius: 8px;
-  
-  .el-dialog__header {
-    margin: 0;
-    padding: 20px;
-    border-bottom: 1px solid #DCDFE6;
-  }
-  
-  .el-dialog__headerbtn {
-    top: 20px;
-  }
-  
-  .el-dialog__title {
-    font-size: 16px;
-    font-weight: 500;
-  }
-  
-  .el-dialog__body {
-    padding: 20px;
-  }
-  
-  .el-dialog__footer {
-    padding: 20px;
-    border-top: 1px solid #DCDFE6;
-  }
-}
-</style> 
+</style>

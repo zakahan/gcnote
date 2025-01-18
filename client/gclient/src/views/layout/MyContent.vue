@@ -486,10 +486,7 @@ onMounted(async () => {
 
   .action-buttons {
     margin-bottom: 30px;
-    
-    .el-button {
-      margin-right: 15px;
-    }
+
   }
 
   .recent-docs {
