@@ -27,6 +27,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 // AddKBFile
@@ -89,15 +90,69 @@ func AddKBFile(ctx *gin.Context) {
 		return
 	}
 
+	// 开始事务，处理
+	KBFileNew := model.KBFile{
+		UserId:     currentUserId,
+		KBFileId:   wrench.IdGenerator(),
+		KBFileName: strings.TrimSuffix(req.File.Filename, filepath.Ext(req.File.Filename)),
+		IndexId:    req.IndexId,
+	}
+	// 检查是否存在同名的文件（kbFileId）
+	var kbFile = model.KBFile{}
+	tx := config.DB.Model(&KBFileNew).Where("kb_file_name = ? AND index_id = ?",
+		KBFileNew.KBFileName, KBFileNew.IndexId).First(&kbFile)
+	if tx.Error != nil && !errors.Is(tx.Error, gorm.ErrRecordNotFound) {
+		zap.S().Debugf("kb_file_name: %s is exist", KBFileNew.KBFileName)
+		ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
+		return
+		// 继续往下走
+	}
+	if tx.RowsAffected != 0 { // 行数不为0 ，说明已经存在了
+		ctx.JSON(http.StatusConflict, dto.Fail(dto.KBFileExistErrCode))
+		return
+	}
+	// -------------------------------------------------
+
+	// 启动 goroutine 处理文件，上传至ES等
+	go processFileAsync(KBFileNew, req, ctx, currentUserId, callback)
+
+	ctx.JSON(http.StatusOK, dto.SuccessWithData("正在导入中"))
+}
+
+func processFileAsync(
+	KBFileNew model.KBFile,
+	req dto.KBFileAddRequest,
+	ctx *gin.Context,
+	currentUserId string,
+	callback func(ctx *gin.Context, KBFileName, state, failReason string, userId string),
+) {
 	// 正式开始文件处理
 	// 获取文件名和文件扩展名
+	zap.S().Debugf("以下部分为goroutine中执行")
+	zap.S().Debugf("goroutine start ---------------------------------------------------------------")
+	// 开始导入
+	tx := config.DB.Begin()
+	if tx.Error != nil {
+		zap.S().Errorf("Failed to begin transaction, err:%v", tx.Error)
+		ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
+		return
+	}
+
+	err := tx.Create(&KBFileNew).Error
+	if err != nil {
+		zap.S().Errorf("Create kbfile %v, Error: %v", KBFileNew.KBFileName, tx.Error)
+		tx.Rollback()
+		ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
+		return
+	}
+	// 文件处理
 	fileName := req.File.Filename
 	fileExt := filepath.Ext(fileName)
 	// 获取上传的文件
 	file, err := req.File.Open()
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError,
-			dto.FailWithMessage(dto.ParamsErrCode, "param file error."))
+		tx.Rollback()
+		callback(ctx, KBFileNew.KBFileName, "fail", "param file error.", currentUserId)
 		return
 	}
 	defer func(file multipart.File) {
@@ -116,68 +171,29 @@ func AddKBFile(ctx *gin.Context) {
 	dst := filepath.Join(tmpFileDirPath, fileName)
 	err = ctx.SaveUploadedFile(req.File, dst)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.KBFileAddFileErrCode))
+		tx.Rollback()
+		callback(ctx, KBFileNew.KBFileName, "fail", "file save error.", currentUserId)
+		return
 	}
 	// 导入没问题 那么我就后续处理了
 	// ------------------------------------
-
-	// 开始sql操作
-	KBFileNew := model.KBFile{
-		UserId:     currentUserId,
-		KBFileId:   wrench.IdGenerator(),
-		KBFileName: strings.TrimSuffix(fileName, fileExt),
-		IndexId:    req.IndexId,
-	}
-	// 检查是否存在同名的文件（kbFileId）
-	var kbFile = model.KBFile{}
-	tx := config.DB.Model(&KBFileNew).Where("kb_file_name = ? AND index_id = ?",
-		KBFileNew.KBFileName, KBFileNew.IndexId).First(&kbFile)
-	if tx.Error != nil && !errors.Is(tx.Error, gorm.ErrRecordNotFound) {
-		zap.S().Debugf("kb_file_name: %s is exist", KBFileNew.KBFileName)
-		ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
-		return
-		// 继续往下走
-	}
-	if tx.RowsAffected != 0 { // 行数不为0 ，说明已经存在了
-		// 如果文件已经存在了，那就给他重命名一下啊？
-		// 算了，把麻烦交给用户把
-		ctx.JSON(http.StatusConflict, dto.Fail(dto.KBFileExistErrCode))
-		return
-	}
-	// -------------------------------------------------
-	// 一切问题都不存在了，那我就开始操作。
-	// 开始事务，处理
-	// 开始事务
-	tx = config.DB.Begin()
-	if tx.Error != nil {
-		zap.S().Errorf("Failed to begin transaction, err:%v", tx.Error)
-		ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
-		return
-	}
-	err = tx.Create(&KBFileNew).Error
-	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-		zap.S().Errorf("Create kbfile %v, Error: %v", KBFileNew.KBFileName, tx.Error)
-		tx.Rollback()
-		ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
-		return
-	}
 	// 文件系统操作
 	kbPath := config.PathCfg.KnowledgeBasePath
 	kbDirPath := filepath.Join(kbPath, KBFileNew.IndexId, KBFileNew.KBFileId)
 	err = os.Mkdir(kbDirPath, os.ModePerm)
 	if err != nil {
-		zap.S().Errorf("Create KBFile Dir %s Error: %v\n", kbDirPath, err)
 		tx.Rollback()
-		ctx.JSON(http.StatusInternalServerError, dto.FailWithMessage(dto.InternalErrCode, "create file dir error"))
+		zap.S().Errorf("Create KBFile Dir %s Error: %v\n", kbDirPath, err)
+		callback(ctx, KBFileNew.KBFileName, "fail", "create file dir error.", currentUserId)
 		return
 	}
 	// 文件导入操作
 	var mdString string
 	_, mdString, err = convert.AutoConvert(tmpFilePath, kbDirPath, fileExt) // 第二个 mdString
 	if err != nil {
-		zap.S().Errorf("Convert File Error: %v", err)
 		tx.Rollback()
-		ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
+		zap.S().Errorf("Convert File Error: %v", err)
+		callback(ctx, KBFileNew.KBFileName, "fail", "convert file error.", currentUserId)
 		return
 	}
 
@@ -193,18 +209,8 @@ func AddKBFile(ctx *gin.Context) {
 	embedList, err := embeds.RandEmbedding(docList) // fixme 之后换成正常的Embedding服务
 	err = search_engine.AddDocuments(config.ElasticClient, "gcnote-"+KBFileNew.IndexId, docList, embedList)
 	if err != nil {
-		zap.S().Errorf("Failed to add document into index, err: %v", err)
 		tx.Rollback()
-		ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
-		return
-	}
-
-	// 提交事务
-	err = tx.Commit().Error
-	if err != nil {
-		zap.S().Errorf("Failed to commit transaction, err: %v", err)
-		tx.Rollback()
-		ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
+		callback(ctx, KBFileNew.KBFileName, "fail", "es upload error.", currentUserId)
 		return
 	}
 
@@ -212,19 +218,48 @@ func AddKBFile(ctx *gin.Context) {
 	// 1. 设置kb文件信息缓存
 	err = cache.SetKBInfo(ctx, KBFileNew)
 	if err != nil {
+		tx.Rollback()
 		zap.S().Errorf("Failed to set kb file cache: %v", err)
 	}
 	// 2. 刷新index的kb文件列表缓存
 	_, err = cache.RefreshIndexKBList(ctx, req.IndexId)
 	if err != nil {
+		tx.Rollback()
 		zap.S().Errorf("Failed to refresh index kb list cache: %v", err)
 	}
 	// 3. 刷新用户的最近访问kb列表缓存
 	_, err = cache.RefreshRecentKBList(ctx, currentUserId)
 	if err != nil {
+		tx.Rollback()
 		zap.S().Errorf("Failed to refresh user recent kb list cache: %v", err)
 	}
 
 	zap.S().Infof("Create file name %v done.", KBFileNew.KBFileName)
-	ctx.JSON(http.StatusOK, dto.Success())
+
+	// SQL 提交事务
+	if err = tx.Commit().Error; err != nil {
+		zap.S().Errorf("Failed to commit transaction, err:%v", err)
+		ctx.JSON(http.StatusInternalServerError, dto.Fail(dto.InternalErrCode))
+		return
+	}
+
+	callback(ctx, KBFileNew.KBFileName, "success", "", currentUserId)
+
+	zap.S().Debugf("goroutine end ---------------------------------------------------------------")
+	return
+}
+
+func callback(ctx *gin.Context, KBFileName string, state string, failReason string, userId string) {
+	task := cache.Task{
+		KBFileName,
+		time.Now().Format("2006-01-02 15:04:05"),
+		state,
+		failReason,
+	}
+	_, err := cache.EnqueueTask(ctx, userId, task)
+	if err != nil {
+		zap.S().Errorf("call error %v", err)
+		return
+	}
+	zap.S().Debugf("call back done. ")
 }

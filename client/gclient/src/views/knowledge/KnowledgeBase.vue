@@ -30,7 +30,7 @@
         <div class="search-box">
           <el-input
             v-model="searchKeyword"
-            placeholder="搜索文档..."
+            placeholder="搜索文档...."
             :prefix-icon="Search"
             @click="showSearchDialog = true"
             readonly
@@ -782,6 +782,34 @@ const handleUpdate = async () => {
       .file-menu {
         border-right: none;
 
+        .el-menu-item {
+          padding: 0 20px;
+
+          .file-item {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            .file-info {
+              display: flex;
+              align-items: center;
+              gap: 8px;
+            }
+
+            .file-actions {
+              display: none;
+              margin-left: 8px;
+            }
+          }
+
+          &:hover {
+            .file-actions {
+              display: block;
+            }
+          }
+
+        }
       }
 
       .search-box {
@@ -903,7 +931,7 @@ const handleUpdate = async () => {
 .share-dialog-content {
   padding: 20px 0;
   text-align: center;
-  
+
   .share-icon {
     color: #409EFF;
     margin-bottom: 20px;
@@ -912,14 +940,14 @@ const handleUpdate = async () => {
       color: #E6A23C;
     }
   }
-  
+
   .share-title {
     font-size: 16px;
     font-weight: 500;
     color: #303133;
     margin-bottom: 10px;
   }
-  
+
   .share-desc {
     font-size: 14px;
     color: #909399;
